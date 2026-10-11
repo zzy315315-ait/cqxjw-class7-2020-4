@@ -1,0 +1,670 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script src="direct-access-check.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2020级7班 · 我们的六年</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: #0a0e1c;
+  color: #fff;
+}
+
+/* 顶部导航 */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 24px;
+  background: rgba(10, 14, 28, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-left img { width: 36px; height: 36px; border-radius: 50%; }
+.header-title { font-size: 16px; font-weight: 700; }
+.header-sub { font-size: 11px; color: #7a8ab5; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-badge {
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  font-size: 13px;
+}
+.back-btn {
+  padding: 8px 18px; border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; cursor: pointer; font-size: 13px;
+  transition: all 0.3s;
+}
+.back-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* 幻灯片容器 */
+.slides-container {
+  width: 100%; height: 100%;
+  position: relative;
+  padding-top: 60px;
+}
+.slide {
+  position: absolute; top: 60px; left: 0; right: 0; bottom: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.slide.active { display: flex; opacity: 1; }
+
+/* 封面页 */
+.slide-cover {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  text-align: center;
+}
+.slide-cover h1 {
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, #c9d6ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+  letter-spacing: 4px;
+}
+.slide-cover .subtitle {
+  font-size: clamp(18px, 2.5vw, 28px);
+  color: #a0b0d0;
+  margin-bottom: 40px;
+  letter-spacing: 8px;
+}
+.slide-cover .year {
+  font-size: clamp(14px, 1.8vw, 20px);
+  color: #6b7a9a;
+  letter-spacing: 6px;
+}
+.cover-image {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  margin-bottom: 40px;
+  object-fit: cover;
+  border: 4px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 60px rgba(100, 150, 255, 0.3);
+}
+
+/* 目录页 */
+.slide-toc {
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+}
+.toc-title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  margin-bottom: 50px;
+  letter-spacing: 4px;
+}
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  max-width: 1000px;
+  width: 100%;
+}
+.toc-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.toc-item:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-5px);
+  border-color: rgba(100, 150, 255, 0.5);
+}
+.toc-num {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #4a90ff, #a07bff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.toc-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.toc-desc {
+  font-size: 12px;
+  color: #7a8ab5;
+  line-height: 1.6;
+}
+
+/* 内容页 */
+.slide-content {
+  background: linear-gradient(135deg, #0a0e1c 0%, #151b30 100%);
+}
+.content-wrapper {
+  display: flex;
+  gap: 50px;
+  max-width: 1200px;
+  width: 100%;
+  align-items: center;
+}
+.content-text { flex: 1; }
+.content-title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #fff, #c9d6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.content-subtitle {
+  font-size: clamp(14px, 1.8vw, 20px);
+  color: #6b7a9a;
+  letter-spacing: 4px;
+  margin-bottom: 30px;
+}
+.content-desc {
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 2;
+  color: #b8c4e0;
+}
+.content-images {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.content-img {
+  width: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+/* 结束页 */
+.slide-end {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2e1a3e 50%, #0f3460 100%);
+  text-align: center;
+}
+.slide-end h1 {
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffd700 0%, #ff6b6b 50%, #a07bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+  letter-spacing: 6px;
+}
+.slide-end .subtitle {
+  font-size: clamp(18px, 2.5vw, 28px);
+  color: #a0b0d0;
+  margin-bottom: 40px;
+  letter-spacing: 6px;
+}
+.slide-end .wish {
+  font-size: clamp(20px, 2.5vw, 32px);
+  color: #ffd700;
+  margin-bottom: 50px;
+  font-weight: 700;
+}
+.credits {
+  font-size: 14px;
+  color: #6b7a9a;
+  line-height: 2;
+}
+
+/* 底部控制栏 */
+.controls {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: center; align-items: center;
+  gap: 20px; padding: 16px 24px;
+  background: rgba(10, 14, 28, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.ctrl-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; cursor: pointer; font-size: 14px;
+  transition: all 0.3s;
+  display: flex; align-items: center; gap: 8px;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+.ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.page-indicator {
+  font-size: 16px;
+  color: #a0b0d0;
+  min-width: 80px;
+  text-align: center;
+}
+.page-indicator .current {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* 进度条 */
+.progress-bar {
+  position: fixed; top: 60px; left: 0; right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  z-index: 99;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4a90ff, #a07bff);
+  transition: width 0.3s;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .content-wrapper { flex-direction: column; gap: 30px; }
+  .toc-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+  .slide { padding: 20px; }
+  .header { padding: 10px 16px; }
+  .header-title { font-size: 14px; }
+  .controls { padding: 12px 16px; gap: 10px; }
+  .ctrl-btn { padding: 8px 14px; font-size: 12px; }
+}
+</style>
+<script src="bgm.js"></script>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="header">
+  <div class="header-left">
+    <img src="xiaohui.png" alt="校徽" onerror="this.style.display='none'">
+    <div>
+      <div class="header-title">2020级7班 · 我们的六年</div>
+      <div class="header-sub">毕业纪念 · PPT展示</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="user-badge" id="userBadge">访客</div>
+    <button class="back-btn" onclick="goBack()">返回主页</button>
+  </div>
+</div>
+
+<!-- 进度条 -->
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill" style="width: 11%"></div>
+</div>
+
+<!-- 幻灯片容器 -->
+<div class="slides-container" id="slidesContainer">
+
+  <!-- 第1页：封面 -->
+  <div class="slide slide-cover active" data-slide="1">
+    <img src="ppt-media/image1.png" class="cover-image" alt="封面" onerror="this.style.display='none'">
+    <h1>我们的六年</h1>
+    <div class="subtitle">2020级7班 · 小学时光历程回顾</div>
+    <div class="year">GRADUATION MEMORY 2020 — 2026</div>
+  </div>
+
+  <!-- 第2页：目录 -->
+  <div class="slide slide-toc" data-slide="2">
+    <div class="toc-title">目录 CONTENTS</div>
+    <div class="toc-grid">
+      <div class="toc-item" onclick="goToSlide(3)">
+        <div class="toc-num">01</div>
+        <div class="toc-name">一年级 · 入学启蒙</div>
+        <div class="toc-desc">初识校园 · 梦想萌芽的起点<br>好奇探索 · 迈出成长第一步</div>
+      </div>
+      <div class="toc-item" onclick="goToSlide(4)">
+        <div class="toc-num">02</div>
+        <div class="toc-name">二年级 · 快乐成长</div>
+        <div class="toc-desc">习惯养成 · 成为自律的自己<br>融入集体 · 收获友谊与欢笑</div>
+      </div>
+      <div class="toc-item" onclick="goToSlide(5)">
+        <div class="toc-num">03</div>
+        <div class="toc-name">三年级 · 自信起航</div>
+        <div class="toc-desc">独立思考 · 探索知识的海洋<br>彬彬有礼 · 构建温暖的集体</div>
+      </div>
+      <div class="toc-item" onclick="goToSlide(6)">
+        <div class="toc-num">04</div>
+        <div class="toc-name">四年级 · 共同进步</div>
+        <div class="toc-desc">学风浓厚 · 专心学习共进步<br>互帮互助 · 携手并肩筑桥梁</div>
+      </div>
+      <div class="toc-item" onclick="goToSlide(7)">
+        <div class="toc-num">05</div>
+        <div class="toc-name">五年级 · 责任担当</div>
+        <div class="toc-desc">彼此陪伴 · 学会包容与分享<br>团结和睦 · 携手并肩共前行</div>
+      </div>
+      <div class="toc-item" onclick="goToSlide(8)">
+        <div class="toc-num">06</div>
+        <div class="toc-name">六年级 · 毕业启航</div>
+        <div class="toc-desc">感恩母校 · 珍藏美好的回忆<br>逐梦远方 · 开启人生新篇章</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 第3页：一年级 -->
+  <div class="slide slide-content" data-slide="3">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">一年级：入学启蒙</div>
+        <div class="content-subtitle">THE FIRST STEP</div>
+        <div class="content-desc">
+          那一年，我们怀着忐忑与好奇，踏入了校园的大门，开始了梦想的起点，迈出了成长的第一步。<br><br>
+          我们像一群羽翼未丰的小鸟，学会了举手、学会了排队，在课本上认认真真写下了第一个生字，完成了第一次计算。<br><br>
+          虽然一开始我们还有些懵懂，但在老师的耐心教导下，我们渐渐适应了校园生活，开启了六年的美好时光。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image5.jpeg" class="content-img" alt="一年级照片" onerror="this.style.display='none'">
+        <img src="ppt-media/image7.jpeg" class="content-img" alt="班级合照" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第4页：二年级 -->
+  <div class="slide slide-content" data-slide="4">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">二年级：快乐成长</div>
+        <div class="content-subtitle">HAPPY GROWTH</div>
+        <div class="content-desc">
+          二年级，我们开始适应校园的节奏，学习如何更好地安排时间，养成良好的学习和生活习惯。<br><br>
+          我们也渐渐融入了集体，友谊的种子在不经意间悄然发芽，开出稚嫩却真挚的花。<br><br>
+          我们在操场上尽情奔跑，在课堂上积极思考，每一天都充满了欢声笑语。运动会、班级春游、课堂互动，每一个瞬间都值得珍藏。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image9.jpeg" class="content-img" alt="二年级照片" onerror="this.style.display='none'">
+        <img src="ppt-media/image11.jpeg" class="content-img" alt="班级活动" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第5页：三年级 -->
+  <div class="slide slide-content" data-slide="5">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">三年级：自信起航</div>
+        <div class="content-subtitle">SAIL WITH CONFIDENCE</div>
+        <div class="content-desc">
+          三年级，我们接触到了更广阔的知识海洋。从加减乘除到诗词歌赋，我们如饥似渴地吸收着养分。<br><br>
+          我们也变得更有礼貌。遇到老师时，我们会微笑问好。面对同学，更多的同学学会了不说脏话，尊重他人。<br><br>
+          我们的集体在大家的共同努力下，变得更加温暖和谐。课堂学习、小组讨论、师生互动，每一个场景都记录着我们的成长。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image13.png" class="content-img" alt="三年级照片" onerror="this.style.display='none'">
+        <img src="ppt-media/image15.png" class="content-img" alt="课堂照片" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第6页：四年级 -->
+  <div class="slide slide-content" data-slide="6">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">四年级：共同进步</div>
+        <div class="content-subtitle">PROGRESS TOGETHER</div>
+        <div class="content-desc">
+          进入四年级，我们班班风愈发端正。同学们团结和睦，互帮互助，课间文明相处，很少出现打闹现象。<br><br>
+          课堂上大家专心听讲，积极举手发言，班级学习氛围浓厚。值日工作人人认真负责，教室总能保持整洁干净。<br><br>
+          遇到班级事务，大家齐心协力，共同完成。社团活动、兴趣小组风采，每一个同学都在自己擅长的领域发光发热。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image1.png" class="content-img" alt="四年级照片" onerror="this.style.display='none'">
+        <img src="ppt-media/image5.jpeg" class="content-img" alt="活动照片" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第7页：五年级 -->
+  <div class="slide slide-content" data-slide="7">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">五年级：责任担当</div>
+        <div class="content-subtitle">TAKE RESPONSIBILITY</div>
+        <div class="content-desc">
+          五年级的班级，整体风貌稳重向上。同学们相处融洽，懂得互相体谅包容，班级十分和睦。<br><br>
+          学习上大家自觉自律，主动钻研难题，小组交流积极热烈，整体成绩稳步提升。班级纪律井然有序，听从老师安排，积极参加各项校园活动。<br><br>
+          我们学会了承担责任，学会了为集体着想。担任班干部、参加社会实践，每一次经历都让我们更加成熟。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image9.jpeg" class="content-img" alt="五年级照片" onerror="this.style.display='none'">
+        <img src="ppt-media/image11.jpeg" class="content-img" alt="社会实践" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第8页：六年级 -->
+  <div class="slide slide-content" data-slide="8">
+    <div class="content-wrapper">
+      <div class="content-text">
+        <div class="content-title">六年级：毕业启航</div>
+        <div class="content-subtitle">GRADUATION & NEW JOURNEY</div>
+        <div class="content-desc">
+          六年级的班级，团结奋进，氛围浓厚。临近毕业，同学们更加珍惜集体时光，相处友善和睦，懂得彼此珍惜。<br><br>
+          学习上大家相互鼓励，查漏补缺，携手拼搏奋进。全班纪律优良，作风端正，积极参与班级建设。集体活动中人人奋勇争先，为班级荣誉而战。<br><br>
+          <span style="color:#ffd700;font-weight:700;">✦ 扬帆起航 · 奔赴山海 ✦</span><br><br>
+          感恩母校，珍藏美好的回忆；逐梦远方，开启人生新篇章。
+        </div>
+      </div>
+      <div class="content-images">
+        <img src="ppt-media/image13.png" class="content-img" alt="毕业照" onerror="this.style.display='none'">
+        <img src="ppt-media/image15.png" class="content-img" alt="班级合影" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </div>
+
+  <!-- 第9页：结束页 -->
+  <div class="slide slide-end" data-slide="9">
+    <h1>感谢遇见 不说再见</h1>
+    <div class="subtitle">THANK YOU & SEE YOU</div>
+    <div class="wish">愿我们，顶峰相见！</div>
+    <div class="credits">
+      PPT制作：周子义 · 李昊辰 · 陶柏彦 · 邓星雨<br>
+      文稿制作：王正玟 · 张景怡<br><br>
+      2020级7班 · 我们的六年 · 毕业纪念
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部控制栏 -->
+<div class="controls">
+  <button class="ctrl-btn" id="prevBtn" onclick="prevSlide()" disabled>
+    <span>←</span> 上一页
+  </button>
+  <div class="page-indicator">
+    <span class="current" id="currentPage">1</span> / <span id="totalPages">9</span>
+  </div>
+  <button class="ctrl-btn" id="nextBtn" onclick="nextSlide()">
+    下一页 <span>→</span>
+  </button>
+  <button class="ctrl-btn" onclick="toggleFullscreen()">
+    <span>⛶</span> 全屏
+  </button>
+  <button class="ctrl-btn" onclick="downloadPPT()">
+    <span>📥</span> 下载PPT
+  </button>
+</div>
+
+<!-- 背景音乐 -->
+<audio id="bgm" loop>
+  <source src="ppt-media/media1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+var currentSlide = 1;
+var totalSlides = 9;
+var isFullscreen = false;
+var currentUser = null;
+var isAdminUser = false;
+
+// 立即执行登录状态检测和用户徽章更新
+(function(){
+  try{
+    var sess = null;
+    var adm = null;
+    try{ sess = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null'); }catch(e){}
+    try{ adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null'); }catch(e){}
+    currentUser = sess || adm;
+    isAdminUser = !!(adm && adm.uid) || (currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin'));
+    
+    function updateBadge(){
+      var userBadge = document.getElementById('userBadge');
+      if(!userBadge) return;
+      if(currentUser && currentUser.name){
+        var roleText = '';
+        if(isAdminUser) roleText = ' (管理员)';
+        else if(currentUser.role === 'teacher') roleText = ' (老师)';
+        userBadge.textContent = currentUser.name + roleText;
+        userBadge.style.background = 'rgba(91,168,255,0.2)';
+        userBadge.style.border = '1px solid rgba(91,168,255,0.3)';
+      }else{
+        userBadge.textContent = '访客';
+        userBadge.style.background = 'rgba(255,255,255,0.1)';
+        userBadge.style.border = '1px solid rgba(255,255,255,0.2)';
+      }
+    }
+    
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', updateBadge);
+    }else{
+      updateBadge();
+    }
+    setTimeout(updateBadge, 100);
+    setTimeout(updateBadge, 500);
+  }catch(e){
+    console.error('读取登录状态失败:', e);
+  }
+})();
+
+// 更新幻灯片显示
+function updateSlide() {
+  var slides = document.querySelectorAll('.slide');
+  slides.forEach(function(slide) {
+    slide.classList.remove('active');
+  });
+  var activeSlide = document.querySelector('.slide[data-slide="' + currentSlide + '"]');
+  if (activeSlide) activeSlide.classList.add('active');
+  
+  document.getElementById('currentPage').textContent = currentSlide;
+  document.getElementById('prevBtn').disabled = (currentSlide === 1);
+  document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
+  
+  // 更新进度条
+  var progress = (currentSlide / totalSlides) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+}
+
+// 下一页
+function nextSlide() {
+  if (currentSlide < totalSlides) {
+    currentSlide++;
+    updateSlide();
+  }
+}
+
+// 上一页
+function prevSlide() {
+  if (currentSlide > 1) {
+    currentSlide--;
+    updateSlide();
+  }
+}
+
+// 跳转到指定页
+function goToSlide(num) {
+  if (num >= 1 && num <= totalSlides) {
+    currentSlide = num;
+    updateSlide();
+  }
+}
+
+// 全屏
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(function(err) {
+      console.log('全屏失败:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// 下载PPT
+function downloadPPT() {
+  window.open('our-six-years.pptx', '_blank');
+}
+
+// 返回主页
+function goBack() {
+  if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/visitor.html';
+  }else if(isAdminUser){
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
+  }else if(currentUser){
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html';
+  }else{
+    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
+  }
+}
+
+// 键盘控制
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    nextSlide();
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevSlide();
+  } else if (e.key === 'Escape' && isFullscreen) {
+    toggleFullscreen();
+  }
+});
+
+// 触摸滑动控制
+var touchStartX = 0;
+var touchEndX = 0;
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.changedTouches[0].screenX;
+});
+document.addEventListener('touchend', function(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+function handleSwipe() {
+  var swipeThreshold = 50;
+  if (touchStartX - touchEndX > swipeThreshold) {
+    nextSlide();
+  } else if (touchEndX - touchStartX > swipeThreshold) {
+    prevSlide();
+  }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+  updateSlide();
+  
+  // 尝试播放背景音乐（用户首次交互后播放）
+  var bgm = document.getElementById('bgm');
+  var playBgm = function() {
+    bgm.volume = 0.3;
+    bgm.play().catch(function() {});
+    document.removeEventListener('click', playBgm);
+    document.removeEventListener('keydown', playBgm);
+  };
+  document.addEventListener('click', playBgm);
+  document.addEventListener('keydown', playBgm);
+});
+</script>
+
+</body>
+</html>

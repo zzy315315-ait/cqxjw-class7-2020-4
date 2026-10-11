@@ -1,0 +1,713 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script src="direct-access-check.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反馈管理 - 谢家湾学校2020级7班</title>
+<link rel="icon" href="xiaohui.png" type="image/png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: #e8ecff;
+  user-select: none;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(198,107,255,0.2);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-left img { width: 40px; height: 40px; border-radius: 50%; }
+.header-title { font-size: 16px; font-weight: 700; color: #e8b8ff; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-badge {
+  background: rgba(198,107,255,0.15);
+  border: 1px solid rgba(198,107,255,0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #c66bff;
+}
+.back-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #a8a8d5;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .2s;
+}
+.back-btn:hover { background: rgba(198,107,255,0.2); color: #e8b8ff; }
+.container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: rgba(0,0,0,0.2);
+  padding: 6px;
+  border-radius: 14px;
+  width: fit-content;
+}
+.tab {
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #a8a8d5;
+  transition: all .2s;
+  border: none;
+  background: transparent;
+}
+.tab.active {
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  color: #fff;
+  font-weight: 600;
+}
+.tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #e8ecff; }
+.feedback-list { display: flex; flex-direction: column; gap: 12px; }
+.feedback-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 20px;
+  transition: all .2s;
+  cursor: pointer;
+}
+.feedback-item:hover {
+  border-color: rgba(198,107,255,0.3);
+  background: rgba(198,107,255,0.05);
+  transform: translateY(-2px);
+}
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.feedback-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.feedback-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.feedback-name { font-size: 15px; font-weight: 600; color: #e8ecff; }
+.feedback-meta { font-size: 12px; color: #888; }
+.feedback-tags { display: flex; gap: 8px; }
+.tag {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-bug { background: rgba(248,113,113,0.15); color: #f87171; }
+.tag-suggestion { background: rgba(74,222,128,0.15); color: #4ade80; }
+.tag-other { background: rgba(148,163,184,0.15); color: #94a3b8; }
+.tag-pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.tag-resolved { background: rgba(74,222,128,0.15); color: #4ade80; }
+.feedback-content {
+  font-size: 14px;
+  color: #c8c8e8;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.feedback-reply {
+  background: rgba(198,107,255,0.08);
+  border-left: 3px solid #c66bff;
+  padding: 10px 14px;
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  color: #c8b8e8;
+}
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid rgba(198,107,255,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modal-title { font-size: 20px; font-weight: 700; color: #e8b8ff; }
+.modal-close {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-section { margin-bottom: 16px; }
+.detail-label { font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 600; }
+.detail-content {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  color: #c8c8e8;
+  line-height: 1.6;
+}
+.chat-area {
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.chat-message {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.chat-message.admin { align-items: flex-end; }
+.chat-message.user { align-items: flex-start; }
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.chat-message.admin .chat-bubble {
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-message.user .chat-bubble {
+  background: rgba(255,255,255,0.08);
+  color: #e8ecff;
+  border-bottom-left-radius: 4px;
+}
+.chat-time { font-size: 10px; color: #666; margin-top: 4px; }
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+}
+.chat-input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(198,107,255,0.2);
+  color: #e8ecff;
+  font-size: 14px;
+  font-family: inherit;
+}
+.chat-input:focus { outline: none; border-color: #c66bff; }
+.chat-send-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.chat-send-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(198,107,255,0.3); }
+.action-buttons { display: flex; gap: 10px; margin-top: 16px; }
+.action-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.action-btn.delete { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+.action-btn.delete:hover { background: rgba(248,113,113,0.25); }
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 99999;
+  backdrop-filter: blur(10px);
+  animation: slideDown .3s ease;
+}
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@media (max-width: 600px) {
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 14px; }
+  .container { padding: 16px; }
+  .tabs { width: 100%; overflow-x: auto; }
+  .tab { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+  .modal { padding: 20px; }
+}
+
+/* 分类筛选标签 */
+.category-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.cat-filter {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: #888;
+}
+.cat-filter:hover {
+  background: rgba(198,107,255,0.1);
+  border-color: rgba(198,107,255,0.3);
+  color: #e8b8ff;
+}
+.cat-filter.active {
+  background: linear-gradient(135deg, rgba(198,107,255,0.2), rgba(100,200,255,0.15));
+  border-color: rgba(198,107,255,0.5);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(198,107,255,0.2);
+}
+</style>
+<script src="bgm.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="xiaohui.png" alt="校徽" onerror="this.style.display='none'">
+    <div class="header-title">反馈管理中心</div>
+  </div>
+  <div class="header-right">
+    <div class="user-badge" id="userBadge">管理员</div>
+    <button class="back-btn" onclick="goBack()">返回主页</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('feedback')">反馈建议</button>
+    <button class="tab" onclick="switchTab('conversation')">对话记录</button>
+  </div>
+  
+  <div id="feedbackPanel">
+    <div class="category-filters">
+      <button class="cat-filter active" onclick="filterByCategory('all')">全部</button>
+      <button class="cat-filter" onclick="filterByCategory('bug')">🐛 Bug反馈</button>
+      <button class="cat-filter" onclick="filterByCategory('question')">❓ 问题咨询</button>
+      <button class="cat-filter" onclick="filterByCategory('suggestion')">💡 功能建议</button>
+      <button class="cat-filter" onclick="filterByCategory('other')">📝 其他</button>
+    </div>
+    <div class="feedback-list" id="feedbackList"></div>
+  </div>
+  
+  <div id="conversationPanel" style="display:none;">
+    <div class="feedback-list" id="conversationList"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://ekfntkpjqzmkibdimtru.supabase.co";
+const ANON_KEY = "sb_publishable_Z3wpxD9ZRbXm9-gPPQOGZg_KKhr_yIs";
+const ADMIN_UIDS = ["919f3af0-801d-4d7b-87b4-03bedc9d2896", "6522e17f-14ea-4f1f-b20d-10457d598fef"];
+
+let currentUser = null;
+let currentTab = 'feedback';
+let currentFeedback = null;
+let currentCategory = 'all'; // 当前筛选的分类
+
+// 按分类筛选
+function filterByCategory(cat) {
+  currentCategory = cat;
+  // 更新按钮状态
+  document.querySelectorAll('.cat-filter').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  // 重新加载反馈列表
+  loadFeedback();
+}
+
+// 获取当前用户
+function getCurrentUser() {
+  try {
+    const session = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    if (session) return session;
+  } catch(e) {}
+  return null;
+}
+
+// 检查管理员权限
+function checkAdmin() {
+  currentUser = getCurrentUser();
+  if (!currentUser || !ADMIN_UIDS.includes(currentUser.uid)) {
+    showToast('无权限访问，请先登录管理员账号');
+    setTimeout(() => { location.href = 'https://cqxjw-class7-2020.pages.dev/admin-login.html'; }, 1500);
+    return false;
+  }
+  document.getElementById('userBadge').textContent = currentUser.name || '管理员';
+  return true;
+}
+
+// API请求
+function apiRequest(method, table, data, filters) {
+  return new Promise((resolve, reject) => {
+    let url = `${SUPABASE_URL}/rest/v1/${table}`;
+    if (filters) {
+      const params = new URLSearchParams(filters);
+      url += '?' + params.toString();
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('apikey', ANON_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + ANON_KEY);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Prefer', 'return=representation');
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch(e) { resolve(null); }
+      } else {
+        reject(new Error(xhr.status + ': ' + xhr.responseText));
+      }
+    };
+    xhr.onerror = function() { reject(new Error('网络错误')); };
+    if (data) xhr.send(JSON.stringify(data));
+    else xhr.send();
+  });
+}
+
+// 切换标签
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('feedbackPanel').style.display = tab === 'feedback' ? 'block' : 'none';
+  document.getElementById('conversationPanel').style.display = tab === 'conversation' ? 'block' : 'none';
+  if (tab === 'feedback') loadFeedback();
+  else loadConversations();
+}
+
+// 加载反馈列表
+async function loadFeedback() {
+  const list = document.getElementById('feedbackList');
+  list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div>加载中...</div></div>';
+  
+  try {
+    // 构建筛选条件
+    let filters = {
+      select: '*',
+      order: 'created_at.desc'
+    };
+    // 如果不是全部，添加category筛选
+    if (currentCategory !== 'all') {
+      filters.category = 'eq.' + currentCategory;
+    }
+    
+    const data = await apiRequest('GET', 'support_tickets', null, filters);
+    
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>暂无反馈建议</div></div>';
+      return;
+    }
+    
+    list.innerHTML = '';
+    data.forEach(item => {
+      const categoryMap = {bug: '功能Bug', suggestion: '建议反馈', other: '其他'};
+      const categoryText = categoryMap[item.category] || item.category || '未知';
+      const statusText = item.status === 'resolved' ? '已处理' : '待处理';
+      const time = formatTime(item.created_at);
+      
+      const div = document.createElement('div');
+      div.className = 'feedback-item';
+      div.onclick = () => openFeedbackDetail(item);
+      div.innerHTML = `
+        <div class="feedback-header">
+          <div class="feedback-user">
+            <div class="feedback-avatar">${(item.name || '匿')[0]}</div>
+            <div>
+              <div class="feedback-name">${escapeHtml(item.name || '匿名')}</div>
+              <div class="feedback-meta">学号: ${item.student_id || '无'} | ${time}</div>
+            </div>
+          </div>
+          <div class="feedback-tags">
+            <span class="tag tag-${item.category || 'other'}">${categoryText}</span>
+            <span class="tag tag-${item.status || 'pending'}">${statusText}</span>
+          </div>
+        </div>
+        <div class="feedback-content">${escapeHtml(item.message || '').substring(0, 150)}${item.message && item.message.length > 150 ? '...' : ''}</div>
+        ${item.admin_reply ? `<div class="feedback-reply">💬 已回复: ${escapeHtml(item.admin_reply).substring(0, 80)}...</div>` : ''}
+      `;
+      list.appendChild(div);
+    });
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div>加载失败: ' + escapeHtml(e.message) + '</div></div>';
+  }
+}
+
+// 打开反馈详情
+async function openFeedbackDetail(item) {
+  currentFeedback = item;
+  
+  // 加载对话记录
+  let conversations = [];
+  if (item.user_id) {
+    try {
+      conversations = await apiRequest('GET', 'conversations', null, {
+        select: '*',
+        user_id: 'eq.' + item.user_id,
+        order: 'created_at.asc'
+      }) || [];
+    } catch(e) { conversations = []; }
+  }
+  
+  const categoryMap = {bug: '功能Bug', suggestion: '建议反馈', other: '其他'};
+  const categoryText = categoryMap[item.category] || item.category || '未知';
+  const statusText = item.status === 'resolved' ? '已处理' : '待处理';
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">反馈详情</div>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">用户信息</div>
+        <div class="detail-content">
+          <strong>${escapeHtml(item.name || '匿名')}</strong> (学号: ${item.student_id || '无'})<br>
+          类型: ${categoryText} | 状态: ${statusText}<br>
+          提交时间: ${formatTime(item.created_at)}
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">反馈内容</div>
+        <div class="detail-content">${escapeHtml(item.message || '')}</div>
+      </div>
+      ${item.admin_reply ? `
+      <div class="detail-section">
+        <div class="detail-label">管理员回复</div>
+        <div class="detail-content" style="border-color: rgba(198,107,255,0.3);">${escapeHtml(item.admin_reply)}<br><small style="color:#888;">回复时间: ${formatTime(item.replied_at)}</small></div>
+      </div>` : ''}
+      <div class="detail-section">
+        <div class="detail-label">对话记录</div>
+        <div class="chat-area" id="chatArea">
+          ${conversations.length === 0 ? '<div style="text-align:center;color:#666;padding:20px;">暂无对话记录</div>' : 
+            conversations.map(conv => `
+              <div class="chat-message ${conv.sender}">
+                <div class="chat-bubble">${escapeHtml(conv.message)}</div>
+                <div class="chat-time">${formatTime(conv.created_at)}</div>
+              </div>
+            `).join('')
+          }
+        </div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chatInput" placeholder="输入消息，用户下次登录时可以看到..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+          <button class="chat-send-btn" onclick="sendChatMessage()">发送</button>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="action-btn delete" onclick="deleteFeedback()">删除反馈</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
+// 发送聊天消息
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message || !currentFeedback) return;
+  
+  input.value = '';
+  
+  try {
+    // 添加到对话表
+    await apiRequest('POST', 'conversations', {
+      ticket_id: currentFeedback.id,
+      user_id: currentFeedback.user_id,
+      user_name: currentFeedback.name,
+      student_id: currentFeedback.student_id,
+      message: message,
+      sender: 'admin',
+      is_read: false
+    });
+    
+    // 更新反馈表的回复
+    await apiRequest('PATCH', 'support_tickets', {
+      admin_reply: message,
+      replied_at: new Date().toISOString(),
+      status: 'resolved'
+    }, { id: 'eq.' + currentFeedback.id });
+    
+    // 添加到聊天区域
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea.querySelector('div').style.textAlign === 'center') chatArea.innerHTML = '';
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message admin';
+    msgDiv.innerHTML = `<div class="chat-bubble">${escapeHtml(message)}</div><div class="chat-time">刚刚</div>`;
+    chatArea.appendChild(msgDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    showToast('消息发送成功！');
+    loadFeedback();
+  } catch(e) {
+    showToast('发送失败: ' + e.message);
+  }
+}
+
+// 删除反馈
+async function deleteFeedback() {
+  if (!currentFeedback) return;
+  if (!confirm('确认删除这条反馈吗？')) return;
+  
+  try {
+    await apiRequest('DELETE', 'support_tickets', null, { id: 'eq.' + currentFeedback.id });
+    showToast('删除成功');
+    document.querySelector('.modal-overlay').remove();
+    loadFeedback();
+  } catch(e) {
+    showToast('删除失败: ' + e.message);
+  }
+}
+
+// 加载对话记录
+async function loadConversations() {
+  const list = document.getElementById('conversationList');
+  list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><div>加载中...</div></div>';
+  
+  try {
+    const data = await apiRequest('GET', 'conversations', null, {
+      select: '*',
+      order: 'created_at.desc'
+    });
+    
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>暂无对话记录</div></div>';
+      return;
+    }
+    
+    list.innerHTML = '';
+    data.forEach(item => {
+      const senderText = item.sender === 'admin' ? '管理员' : '用户';
+      const time = formatTime(item.created_at);
+      
+      const div = document.createElement('div');
+      div.className = 'feedback-item';
+      div.innerHTML = `
+        <div class="feedback-header">
+          <div class="feedback-user">
+            <div class="feedback-avatar" style="background:${item.sender === 'admin' ? 'linear-gradient(135deg,#c66bff,#64c8ff)' : 'linear-gradient(135deg,#4ade80,#22c55e)'}">${senderText[0]}</div>
+            <div>
+              <div class="feedback-name">${senderText} → ${escapeHtml(item.user_name || '未知')}</div>
+              <div class="feedback-meta">学号: ${item.student_id || '无'} | ${time}</div>
+            </div>
+          </div>
+          <div class="feedback-tags">
+            <span class="tag ${item.is_read ? 'tag-resolved' : 'tag-pending'}">${item.is_read ? '已读' : '未读'}</span>
+          </div>
+        </div>
+        <div class="feedback-content">${escapeHtml(item.message || '').substring(0, 150)}${item.message && item.message.length > 150 ? '...' : ''}</div>
+      `;
+      list.appendChild(div);
+    });
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div>加载失败: ' + escapeHtml(e.message) + '</div></div>';
+  }
+}
+
+// 工具函数
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return '未知';
+  try {
+    const d = new Date(timeStr);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  } catch(e) { return timeStr; }
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+function goBack() {
+  location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
+}
+
+// 初始化
+if (checkAdmin()) {
+  loadFeedback();
+}
+</script>
+
+</body>
+</html>

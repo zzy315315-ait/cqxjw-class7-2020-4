@@ -1,0 +1,565 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script src="direct-access-check.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>排行榜管理 - 谢家湾学校2020级7班</title>
+<link rel="icon" href="xiaohui.png" type="image/png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: #e8ecff;
+  user-select: none;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(198,107,255,0.2);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-left img { width: 40px; height: 40px; border-radius: 50%; }
+.header-title { font-size: 16px; font-weight: 700; color: #e8b8ff; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-badge {
+  background: rgba(198,107,255,0.15);
+  border: 1px solid rgba(198,107,255,0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #c66bff;
+}
+.back-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #a8a8d5;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .2s;
+}
+.back-btn:hover { background: rgba(198,107,255,0.2); color: #e8b8ff; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.game-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.game-tab {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all .25s;
+  border: 2px solid transparent;
+  background: rgba(255,255,255,0.03);
+  color: #888;
+}
+.game-tab.active {
+  background: linear-gradient(135deg, rgba(198,107,255,0.2), rgba(100,200,255,0.15));
+  color: #fff;
+  border-color: rgba(198,107,255,0.5);
+  box-shadow: 0 4px 16px rgba(198,107,255,0.2);
+}
+.diff-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+.diff-tab {
+  padding: 8px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #666;
+}
+.diff-tab.active {
+  background: rgba(100,200,255,0.15);
+  color: #64c8ff;
+  border-color: rgba(100,200,255,0.4);
+}
+.type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+.type-tab {
+  padding: 8px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #666;
+}
+.type-tab.active {
+  background: rgba(198,107,255,0.15);
+  color: #c66bff;
+  border-color: rgba(198,107,255,0.4);
+}
+.table-container {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 600px;
+  overflow-y: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background: rgba(198,107,255,0.1);
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c66bff;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+  color: #c8c8e8;
+}
+tr:hover { background: rgba(198,107,255,0.05); }
+.rank-1 { color: #ffd700; font-weight: 700; }
+.rank-2 { color: #c0c0c0; font-weight: 700; }
+.rank-3 { color: #cd7f32; font-weight: 700; }
+.delete-btn {
+  background: rgba(248,113,113,0.15);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: #f87171;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.delete-btn:hover { background: rgba(248,113,113,0.25); }
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: flex-end;
+}
+.action-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  border: 1px solid transparent;
+}
+.action-btn.danger {
+  background: rgba(248,113,113,0.15);
+  border-color: rgba(248,113,113,0.3);
+  color: #f87171;
+}
+.action-btn.danger:hover { background: rgba(248,113,113,0.25); }
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 99999;
+  backdrop-filter: blur(10px);
+  animation: slideDown .3s ease;
+}
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 14px; }
+  .container { padding: 16px; }
+  .game-tabs { flex-direction: column; }
+  th, td { padding: 10px 8px; font-size: 12px; }
+}
+</style>
+<script src="bgm.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="xiaohui.png" alt="校徽" onerror="this.style.display='none'">
+    <div class="header-title">排行榜管理中心</div>
+  </div>
+  <div class="header-right">
+    <div class="user-badge" id="userBadge">管理员</div>
+    <button class="back-btn" onclick="goBack()">返回主页</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="game-tabs">
+    <div class="game-tab active" onclick="switchGame('quiz')">🎯 选择题小游戏</div>
+    <div class="game-tab" onclick="switchGame('brick')">🧱 炫彩打砖块</div>
+  </div>
+  
+  <div id="quizPanel">
+    <div class="type-tabs">
+      <div class="type-tab active" onclick="switchQuizType('all')">全部</div>
+      <div class="type-tab" onclick="switchQuizType('user')">用户榜</div>
+      <div class="type-tab" onclick="switchQuizType('guest')">访客榜</div>
+    </div>
+    <div class="actions">
+      <button class="action-btn danger" onclick="clearQuiz()">清空排行榜</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>名字</th>
+            <th>学号</th>
+            <th>类型</th>
+            <th>通关耗时</th>
+            <th>通关时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="quizTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="quizEmpty" style="display:none">
+        <div class="empty-state-icon">📊</div>
+        <div>暂无记录</div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="brickPanel" style="display:none">
+    <div class="diff-tabs">
+      <div class="diff-tab active" onclick="switchBrickDiff('easy')">简单</div>
+      <div class="diff-tab" onclick="switchBrickDiff('normal')">普通</div>
+      <div class="diff-tab" onclick="switchBrickDiff('hard')">困难</div>
+    </div>
+    <div class="type-tabs">
+      <div class="type-tab active" onclick="switchBrickType('all')">全部</div>
+      <div class="type-tab" onclick="switchBrickType('user')">用户榜</div>
+      <div class="type-tab" onclick="switchBrickType('guest')">访客榜</div>
+    </div>
+    <div class="actions">
+      <button class="action-btn danger" onclick="clearBrick()">清空排行榜</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>名字</th>
+            <th>学号</th>
+            <th>类型</th>
+            <th>分数</th>
+            <th>关卡</th>
+            <th>时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="brickTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="brickEmpty" style="display:none">
+        <div class="empty-state-icon">📊</div>
+        <div>暂无记录</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://ekfntkpjqzmkibdimtru.supabase.co";
+const ANON_KEY = "sb_publishable_Z3wpxD9ZRbXm9-gPPQOGZg_KKhr_yIs";
+const ADMIN_UIDS = ["919f3af0-801d-4d7b-87b4-03bedc9d2896", "6522e17f-14ea-4f1f-b20d-10457d598fef"];
+
+let currentGame = 'quiz';
+let currentQuizType = 'all';
+let currentBrickDiff = 'easy';
+let currentBrickType = 'all';
+
+// 获取当前用户
+function getCurrentUser() {
+  try {
+    const session = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    if (session) return session;
+  } catch(e) {}
+  return null;
+}
+
+// 检查管理员权限
+function checkAdmin() {
+  const user = getCurrentUser();
+  if (!user || !ADMIN_UIDS.includes(user.uid)) {
+    showToast('无权限访问，请先登录管理员账号', 'error');
+    setTimeout(() => { location.href = 'https://cqxjw-class7-2020.pages.dev/admin-login.html'; }, 1500);
+    return false;
+  }
+  document.getElementById('userBadge').textContent = user.name || '管理员';
+  return true;
+}
+
+// API请求
+function apiRequest(method, table, data, filters) {
+  return new Promise((resolve, reject) => {
+    let url = `${SUPABASE_URL}/rest/v1/${table}`;
+    if (filters) {
+      const params = new URLSearchParams(filters);
+      url += '?' + params.toString();
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('apikey', ANON_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + ANON_KEY);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Prefer', 'return=representation');
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch(e) { resolve(null); }
+      } else {
+        reject(new Error(xhr.status + ': ' + xhr.responseText));
+      }
+    };
+    xhr.onerror = function() { reject(new Error('网络错误')); };
+    if (data) xhr.send(JSON.stringify(data));
+    else xhr.send();
+  });
+}
+
+// 切换游戏
+function switchGame(game) {
+  currentGame = game;
+  document.querySelectorAll('.game-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('quizPanel').style.display = game === 'quiz' ? 'block' : 'none';
+  document.getElementById('brickPanel').style.display = game === 'brick' ? 'block' : 'none';
+  if (game === 'quiz') loadQuizRecords();
+  else loadBrickRecords();
+}
+
+// 切换选择题类型
+function switchQuizType(type) {
+  currentQuizType = type;
+  document.querySelectorAll('#quizPanel .type-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  loadQuizRecords();
+}
+
+// 切换打砖块难度
+function switchBrickDiff(diff) {
+  currentBrickDiff = diff;
+  document.querySelectorAll('#brickPanel .diff-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  loadBrickRecords();
+}
+
+// 切换打砖块类型
+function switchBrickType(type) {
+  currentBrickType = type;
+  document.querySelectorAll('#brickPanel .type-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  loadBrickRecords();
+}
+
+// 加载选择题记录
+async function loadQuizRecords() {
+  const tbody = document.getElementById('quizTableBody');
+  const empty = document.getElementById('quizEmpty');
+  tbody.innerHTML = '';
+  
+  let filters = { select: '*', order: 'completion_time.asc', limit: '100' };
+  if (currentQuizType === 'user') filters['is_guest'] = 'eq.false';
+  else if (currentQuizType === 'guest') filters['is_guest'] = 'eq.true';
+  
+  try {
+    const data = await apiRequest('GET', 'quiz_game_records', null, filters);
+    if (!data || data.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    data.forEach((item, i) => {
+      const rankClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+      const typeText = item.is_guest ? '访客' : '用户';
+      const ct = item.completion_time || 0;
+      const mins = Math.floor(ct / 60);
+      const secs = ct % 60;
+      const timeUsed = (mins > 0 ? mins + '分' : '') + secs + '秒';
+      const timeStr = item.completed_at ? new Date(item.completed_at).toLocaleString('zh-CN') : '--';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="${rankClass}">${i+1}</td>
+        <td>${escapeHtml(item.name || '匿名')}</td>
+        <td>${item.student_id || '--'}</td>
+        <td>${typeText}</td>
+        <td>${timeUsed}</td>
+        <td>${timeStr}</td>
+        <td><button class="delete-btn" onclick="deleteQuizRecord(${item.id})">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    empty.style.display = 'block';
+    empty.querySelector('div:last-child').textContent = '加载失败: ' + e.message;
+  }
+}
+
+// 加载打砖块记录
+async function loadBrickRecords() {
+  const tbody = document.getElementById('brickTableBody');
+  const empty = document.getElementById('brickEmpty');
+  tbody.innerHTML = '';
+  
+  let filters = { select: '*', difficulty: 'eq.' + currentBrickDiff, order: 'score.desc', limit: '100' };
+  if (currentBrickType === 'user') filters['is_guest'] = 'eq.false';
+  else if (currentBrickType === 'guest') filters['is_guest'] = 'eq.true';
+  
+  try {
+    const data = await apiRequest('GET', 'brick_game_scores', null, filters);
+    if (!data || data.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    data.forEach((item, i) => {
+      const rankClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+      const typeText = item.is_guest ? '访客' : '用户';
+      const timeStr = item.created_at ? new Date(item.created_at).toLocaleString('zh-CN') : '--';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="${rankClass}">${i+1}</td>
+        <td>${escapeHtml(item.name || '匿名')}</td>
+        <td>${item.student_id || '--'}</td>
+        <td>${typeText}</td>
+        <td style="color:#ffd700;font-weight:700">${item.score}</td>
+        <td>Lv.${item.level || 1}</td>
+        <td>${timeStr}</td>
+        <td><button class="delete-btn" onclick="deleteBrickRecord(${item.id})">删除</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    empty.style.display = 'block';
+    empty.querySelector('div:last-child').textContent = '加载失败: ' + e.message;
+  }
+}
+
+// 删除选择题记录
+async function deleteQuizRecord(id) {
+  if (!confirm('确认删除这条记录吗？')) return;
+  try {
+    await apiRequest('DELETE', 'quiz_game_records', null, { id: 'eq.' + id });
+    showToast('删除成功', 'success');
+    loadQuizRecords();
+  } catch(e) {
+    showToast('删除失败: ' + e.message, 'error');
+  }
+}
+
+// 删除打砖块记录
+async function deleteBrickRecord(id) {
+  if (!confirm('确认删除这条记录吗？')) return;
+  try {
+    await apiRequest('DELETE', 'brick_game_scores', null, { id: 'eq.' + id });
+    showToast('删除成功', 'success');
+    loadBrickRecords();
+  } catch(e) {
+    showToast('删除失败: ' + e.message, 'error');
+  }
+}
+
+// 清空选择题排行榜
+async function clearQuiz() {
+  if (!confirm('确认清空选择题排行榜所有记录吗？此操作不可恢复！')) return;
+  if (!confirm('再次确认：真的要清空所有记录吗？')) return;
+  try {
+    await apiRequest('DELETE', 'quiz_game_records');
+    showToast('清空成功', 'success');
+    loadQuizRecords();
+  } catch(e) {
+    showToast('清空失败: ' + e.message, 'error');
+  }
+}
+
+// 清空打砖块排行榜
+async function clearBrick() {
+  if (!confirm('确认清空炫彩打砖块排行榜所有记录吗？此操作不可恢复！')) return;
+  if (!confirm('再次确认：真的要清空所有记录吗？')) return;
+  try {
+    await apiRequest('DELETE', 'brick_game_scores');
+    showToast('清空成功', 'success');
+    loadBrickRecords();
+  } catch(e) {
+    showToast('清空失败: ' + e.message, 'error');
+  }
+}
+
+// 工具函数
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  if (type === 'error') t.style.background = 'rgba(239,68,68,0.95)';
+  else if (type === 'success') t.style.background = 'rgba(34,197,94,0.95)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+function goBack() {
+  location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
+}
+
+// 初始化
+if (checkAdmin()) {
+  loadQuizRecords();
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script src="direct-access-check.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="xiaohui.png">
+<title>管理员设置 - 谢家湾学校2020级7班 · 毕业记忆</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  img{-webkit-user-drag:none;user-drag:none}
+  body{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#050810;color:#e0e6f0;min-height:100vh}
+  .bg-fixed{position:fixed;inset:0;z-index:-2;background:url('starbg.jpg') center/cover no-repeat;filter:brightness(0.3) saturate(1.2)}
+  .bg-overlay{position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,8,16,0.75),rgba(5,8,16,0.92))}
+  .navbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:rgba(10,14,28,0.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.08)}
+  .nav-brand{display:flex;align-items:center;gap:12px;cursor:pointer}
+  .nav-logo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,215,0,0.4)}
+  .nav-brand-title{font-size:14px;font-weight:700;color:#e8efff}
+  .nav-brand-sub{font-size:10px;color:#ffd700;letter-spacing:1.5px}
+  .nav-back{padding:8px 18px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#c8d4f0;font-size:13px;cursor:pointer;transition:all .25s}
+  .nav-back:hover{background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.3);color:#fff}
+  .container{padding:100px 24px 60px;max-width:1100px;margin:0 auto}
+  .page-header{text-align:center;margin-bottom:28px}
+  .page-icon{font-size:40px;margin-bottom:10px;opacity:.85}
+  .page-title{font-size:clamp(22px,5vw,30px);font-weight:800;letter-spacing:2px;background:linear-gradient(135deg,#ffd700,#ff8c00,#ff6347);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+  .page-desc{font-size:13px;color:#7a8ab5}
+  .tabs{display:flex;gap:6px;margin-bottom:24px;background:rgba(20,24,44,0.5);padding:6px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);flex-wrap:wrap}
+  .tab{flex:1;min-width:100px;padding:10px 8px;text-align:center;border-radius:10px;font-size:13px;font-weight:600;color:#7a8ab5;cursor:pointer;transition:all .25s}
+  .tab.active{background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,140,0,0.15));color:#ffd700;border:1px solid rgba(255,215,0,0.3)}
+  .tab:hover:not(.active){color:#a8b4d0}
+  .card{background:rgba(20,24,44,0.7);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+  .card-title{font-size:16px;font-weight:700;color:#e8efff;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .card-title .badge{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3)}
+  .data-table{width:100%;border-collapse:collapse;font-size:13px}
+  .data-table th{text-align:left;padding:10px 12px;color:#7a8ab5;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08);font-size:12px;letter-spacing:0.5px}
+  .data-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:#c8d4f0}
+  .data-table tr:hover td{background:rgba(255,255,255,0.02)}
+  .role-tag{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .role-admin{background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3)}
+  .role-teacher{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
+  .role-student{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+  .role-unrestricted{background:rgba(160,123,255,0.15);color:#a78bfa;border:1px solid rgba(160,123,255,0.3)}
+  .status-pending{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .status-processed{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .btn-sm{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .25s;border:none;margin-right:6px}
+  .btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+  .btn-danger:hover{background:rgba(239,68,68,0.25)}
+  .btn-success{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
+  .btn-success:hover{background:rgba(34,197,94,0.25)}
+  .btn-info{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+  .btn-info:hover{background:rgba(59,130,246,0.25)}
+  .btn-warn{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3)}
+  .btn-warn:hover{background:rgba(245,158,11,0.25)}
+  .empty-state{text-align:center;padding:40px 20px;color:#5a6890}
+  .empty-icon{font-size:40px;margin-bottom:10px;opacity:.5}
+  .empty-text{font-size:13px;line-height:1.8}
+  .hint-box{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:12px;color:#fbbf24;line-height:1.7}
+  .hint-box strong{color:#ffd700}
+  .stat-row{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+  .stat-card{flex:1;min-width:140px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;text-align:center}
+  .stat-num{font-size:28px;font-weight:800;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .stat-label{font-size:12px;color:#7a8ab5;margin-top:4px}
+  .log-item{padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:10px;margin-bottom:8px;border-left:3px solid rgba(255,215,0,0.4)}
+  .log-action{font-size:13px;font-weight:600;color:#e8efff;margin-bottom:4px}
+  .log-detail{font-size:12px;color:#7a8ab5;line-height:1.6}
+  .log-time{font-size:11px;color:#5a6890;margin-top:4px}
+  .toast{position:fixed;top:30px;left:50%;transform:translateX(-50%) translateY(-20px);padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:all .3s;pointer-events:none;backdrop-filter:blur(12px);max-width:90%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.success{background:rgba(34,197,94,0.9);border:1px solid rgba(74,222,128,0.3);color:#fff}
+  .toast.error{background:rgba(239,68,68,0.9);border:1px solid rgba(248,113,113,0.3);color:#fff}
+  .toast.info{background:rgba(59,130,246,0.9);border:1px solid rgba(96,165,250,0.3);color:#fff}
+  .loading{text-align:center;padding:30px;color:#7a8ab5;font-size:13px}
+  
+  /* 二次验证遮罩层 */
+  .verify-mask{position:fixed;inset:0;background:rgba(5,8,16,0.92);backdrop-filter:blur(12px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .verify-card{background:rgba(20,24,44,0.95);backdrop-filter:blur(24px);border:1px solid rgba(255,215,0,0.2);border-radius:20px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(255,215,0,0.1);text-align:center;animation:verifyIn .4s ease}
+  @keyframes verifyIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .verify-icon{font-size:48px;margin-bottom:16px;animation:iconPulse 2s ease-in-out infinite}
+  @keyframes iconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .verify-title{font-size:22px;font-weight:800;color:#ffd700;margin-bottom:8px;letter-spacing:2px}
+  .verify-desc{font-size:13px;color:#7a8ab5;margin-bottom:24px;line-height:1.6}
+  .long-press-btn{position:relative;width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,215,0,0.3);background:rgba(255,215,0,0.1);color:#ffd700;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;overflow:hidden;user-select:none}
+  .long-press-btn:hover{background:rgba(255,215,0,0.2);border-color:rgba(255,215,0,0.5)}
+  .long-press-btn:active{transform:scale(.98)}
+  .long-press-btn.pressing{background:rgba(255,215,0,0.3);border-color:#ffd700}
+  .progress-ring{position:absolute;bottom:0;left:0;height:4px;width:100%;background:rgba(255,255,255,0.1);overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#ffd700,#ff8c00,#ff6347);transition:width 0.05s linear;box-shadow:0 0 10px rgba(255,215,0,0.5)}
+  .verify-input{width:100%;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,215,0,0.3);color:#e8efff;font-size:15px;outline:none;transition:all .3s;margin-bottom:16px}
+  .verify-input:focus{border-color:#ffd700;background:rgba(255,215,0,0.08);box-shadow:0 0 0 4px rgba(255,215,0,0.1)}
+  .verify-submit{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a1a2e;font-size:15px;font-weight:700;letter-spacing:2px;transition:all .3s;box-shadow:0 8px 24px rgba(255,215,0,0.3)}
+  .verify-submit:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,215,0,0.4)}
+  .verify-submit:active{transform:translateY(0)}
+  .verify-tip{margin-top:16px;font-size:11px;color:#5a6890;letter-spacing:0.5px}
+  
+  /* 响应式设计：适配手机端、平板端、电脑端 */
+  @media(max-width:480px){
+    .verify-card{padding:28px 20px}
+    .verify-icon{font-size:36px}
+    .verify-title{font-size:18px}
+    .verify-desc{font-size:12px}
+    .long-press-btn{padding:14px;font-size:14px}
+    .verify-input{padding:12px 14px;font-size:14px}
+    .verify-submit{padding:12px;font-size:14px}
+  }
+  @media(min-width:481px) and (max-width:768px){
+    .verify-card{padding:32px 24px;max-width:380px}
+  }
+  @media(min-width:769px){
+    .verify-card{padding:40px 32px;max-width:420px}
+  }
+  
+  @media(max-width:768px){.container{padding:90px 16px 40px}.card{padding:16px}.data-table{font-size:12px}.data-table th,.data-table td{padding:8px 6px}}
+</style>
+<script src="second-verify.js"></script>
+<script src="auth-check.js"></script>
+<script src="bgm.js"></script>
+<script src="captcha-verify.js"></script>
+</head>
+<body>
+<div class="bg-fixed"></div><div class="bg-overlay"></div>
+
+<!-- 二次验证遮罩层 -->
+<div class="verify-mask" id="verifyMask">
+  <div class="verify-card">
+    <!-- 第一步：长按人机验证 -->
+    <div class="verify-step" id="step1">
+      <div class="verify-icon">🤖</div>
+      <div class="verify-title">人机验证</div>
+      <div class="verify-desc">请长按下方按钮完成人机验证</div>
+      <button class="long-press-btn" id="longPressBtn">
+        <span class="btn-text">长按验证</span>
+        <div class="progress-ring"><div class="progress-fill" id="progressFill"></div></div>
+      </button>
+    </div>
+    <!-- 第二步：管理员验证账户验证 -->
+    <div class="verify-step" id="step2" style="display:none">
+      <div class="verify-icon">🔐</div>
+      <div class="verify-title">管理员验证</div>
+      <div class="verify-desc">请输入管理员验证密码</div>
+      <input type="password" class="verify-input" id="verifyPwd" placeholder="输入验证密码" autocomplete="off">
+      <button class="verify-submit" onclick="submitVerify()">验证并进入</button>
+      <div class="verify-tip">验证账户：verify_admin_11884890@qq.com</div>
+    </div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nav-brand" onclick="location.href='https://cqxjw-class7-2020-2.pages.dev/admin-main.html'">
+    <img src="xiaohui.png" class="nav-logo" alt="校徽">
+    <div><div class="nav-brand-title">谢家湾学校 2020级7班</div><div class="nav-brand-sub">管理员控制台</div></div>
+  </div>
+  <div class="nav-back" onclick="location.href='https://cqxjw-class7-2020-2.pages.dev/admin-main.html'">← 返回主页</div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div class="page-icon">⚙️</div>
+    <div class="page-title">管理员设置</div>
+    <div class="page-desc">用户管理 · 内容管理 · 权限设置 · 操作日志</div>
+  </div>
+
+  <!-- 管理员操作选项入口 -->
+  <div class="card" style="margin-bottom:20px;border-left:3px solid #4a90ff">
+    <div class="card-title">🔧 管理员操作选项</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn-primary" onclick="goAdminOps()">进入管理员操作中心</button>
+      <span style="font-size:12px;color:#6b8ab5;align-self:center">用户管理 · 注册申请管理 · 一键查询数据库（需二次验证）</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('users')" id="tabUsers">👥 用户管理</div>
+    <div class="tab" onclick="switchTab('content')" id="tabContent">📝 内容管理</div>
+    <div class="tab" onclick="switchTab('perms')" id="tabPerms">🔐 权限设置</div>
+    <div class="tab" onclick="switchTab('logs')" id="tabLogs">📋 操作日志</div>
+  </div>
+
+  <!-- 用户管理 -->
+  <div id="panelUsers">
+    <div class="hint-box">
+      <strong>⚠️ 说明：</strong>查看用户列表从数据库读取。创建用户、删除用户、重置密码需要使用本地Python脚本（不受管控账号管理.py / 用户管理.py），因为这些操作需要service_role密钥，不能放在前端。
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" id="statTotal">--</div><div class="stat-label">总用户数</div></div>
+      <div class="stat-card"><div class="stat-num" id="statStudents">--</div><div class="stat-label">学生</div></div>
+      <div class="stat-card"><div class="stat-num" id="statTeachers">--</div><div class="stat-label">老师</div></div>
+      <div class="stat-card"><div class="stat-num" id="statAdmins">--</div><div class="stat-label">管理员</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 用户列表 <span class="badge" id="userCount">加载中</span></div>
+      <div id="userList"><div class="loading">加载中...</div></div>
+    </div>
+  </div>
+
+  <!-- 内容管理 -->
+  <div id="panelContent" style="display:none">
+    <div class="card">
+      <div class="card-title">💬 留言墙管理 <span class="badge" id="msgCount">加载中</span></div>
+      <div id="msgList"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📮 联系管理员反馈 <span class="badge" id="ticketCount">加载中</span></div>
+      <div id="ticketList"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 密码重置申请 <span class="badge" id="resetCount">加载中</span></div>
+      <div class="hint-box" style="margin-bottom:12px">
+        <strong>⚠️ 重置密码：</strong>点击"标记已处理"后，请使用本地Python脚本（用户管理.py）将该用户密码重置为申请的密码，然后通知用户。
+      </div>
+      <div id="resetList"><div class="loading">加载中...</div></div>
+    </div>
+  </div>
+
+  <!-- 权限设置 -->
+  <div id="panelPerms" style="display:none">
+    <div class="card">
+      <div class="card-title">🔐 当前管理员</div>
+      <div class="hint-box">
+        <strong>⚠️ 说明：</strong>管理员权限通过固定UID白名单控制（在SQL策略中硬编码），这是最安全的方式。添加/删除管理员需要修改SQL策略中的UID，或使用本地Python脚本设置user_metadata.role。
+      </div>
+      <table class="data-table">
+        <thead><tr><th>序号</th><th>名称</th><th>UID（前8位）</th><th>类型</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>超级管理员</td><td>919f3af0</td><td><span class="role-tag role-admin">固定白名单</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 RLS策略概览</div>
+      <table class="data-table">
+        <thead><tr><th>表名</th><th>读取</th><th>插入</th><th>修改</th><th>删除</th></tr></thead>
+        <tbody>
+          <tr><td>messages</td><td>所有人</td><td>所有人</td><td>-</td><td>仅管理员</td></tr>
+          <tr><td>student_profiles</td><td>所有人</td><td>-</td><td>本人/管理员</td><td>-</td></tr>
+          <tr><td>support_tickets</td><td>本人/管理员</td><td>所有人</td><td>仅管理员</td><td>-</td></tr>
+          <tr><td>password_resets</td><td>仅管理员</td><td>所有人</td><td>仅管理员</td><td>-</td></tr>
+          <tr><td>admin_records</td><td>仅管理员</td><td>仅管理员</td><td>-</td><td>-</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 操作日志 -->
+  <div id="panelLogs" style="display:none">
+    <div class="card">
+      <div class="card-title">📋 操作日志 <span class="badge" id="logCount">加载中</span></div>
+      <div id="logList"><div class="loading">加载中...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SUPABASE_URL = "https://ekfntkpjqzmkibdimtru.supabase.co";
+var ANON_KEY = "sb_publishable_Z3wpxD9ZRbXm9-gPPQOGZg_KKhr_yIs";
+var ADMIN_UIDS = ["919f3af0-801d-4d7b-87b4-03bedc9d2896", "6522e17f-14ea-4f1f-b20d-10457d598fef"];
+var adminToken = null;
+
+// 管理员验证账户邮箱（Base64编码，密码不写死，由用户输入）
+var _VERIFY_EMAIL_B64 = "dmVyaWZ5X2FkbWluXzExODg0ODkwQHFxLmNvbQ==";
+
+// 危险操作密码验证（用管理员验证账户的邮箱+密码去Supabase验证）
+function verifyDangerAction(callback, actionName) {
+  var pwd = prompt("【" + (actionName || "危险操作") + "】请输入管理员验证密码：");
+  if (!pwd) return;
+  
+  var email = atob(_VERIFY_EMAIL_B64);
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", SUPABASE_URL + "/auth/v1/token?grant_type=password", true);
+  xhr.setRequestHeader("apikey", ANON_KEY);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      callback();
+    } else {
+      alert("验证失败：密码错误，请重试");
+    }
+  };
+  xhr.onerror = function() {
+    alert("验证失败：网络错误");
+  };
+  xhr.send(JSON.stringify({email: email, password: pwd}));
+}
+
+// ===== 二次验证流程 =====
+var verifyStep = 1;
+var longPressTimer = null;
+var longPressProgress = 0;
+var isVerified = false;
+
+// 初始化二次验证
+function initVerify(){
+  // 检查是否已经验证过（sessionStorage，避免每次刷新都验证）
+  if(sessionStorage.getItem('admin_settings_verified') === '1'){
+    isVerified = true;
+    document.getElementById('verifyMask').style.display = 'none';
+    return;
+  }
+  
+  // 显示二次验证遮罩层
+  document.getElementById('verifyMask').style.display = 'flex';
+  verifyStep = 1;
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  
+  // 绑定长按事件
+  var btn = document.getElementById('longPressBtn');
+  var progressFill = document.getElementById('progressFill');
+  var isPressing = false;
+  
+  function startPress(e){
+    // 不阻止默认行为，避免按钮无法点击
+    isPressing = true;
+    longPressProgress = 0;
+    btn.classList.add('pressing');
+    progressFill.style.width = '0%';
+    
+    // 清除之前的定时器
+    if(longPressTimer) clearInterval(longPressTimer);
+    
+    longPressTimer = setInterval(function(){
+      if(!isPressing){
+        clearInterval(longPressTimer);
+        return;
+      }
+      longPressProgress += 2; // 每50ms增加2%，总共2.5秒
+      progressFill.style.width = longPressProgress + '%';
+      if(longPressProgress >= 100){
+        clearInterval(longPressTimer);
+        isPressing = false;
+        btn.classList.remove('pressing');
+        // 验证通过，进入第二步
+        setTimeout(function(){
+          verifyStep = 2;
+          document.getElementById('step1').style.display = 'none';
+          document.getElementById('step2').style.display = 'block';
+          setTimeout(function(){ document.getElementById('verifyPwd').focus(); }, 100);
+        }, 300);
+      }
+    }, 50);
+  }
+  
+  function endPress(e){
+    isPressing = false;
+    if(longPressTimer) clearInterval(longPressTimer);
+    if(longPressProgress < 100){
+      longPressProgress = 0;
+      progressFill.style.width = '0%';
+      btn.classList.remove('pressing');
+    }
+  }
+  
+  // 电脑端事件
+  btn.addEventListener('mousedown', startPress);
+  btn.addEventListener('mouseup', endPress);
+  btn.addEventListener('mouseleave', endPress);
+  // 手机端事件
+  btn.addEventListener('touchstart', function(e){ e.preventDefault(); startPress(e); }, {passive:false});
+  btn.addEventListener('touchend', function(e){ e.preventDefault(); endPress(e); }, {passive:false});
+  btn.addEventListener('touchcancel', endPress);
+}
+
+// 提交管理员验证
+function submitVerify(){
+  var pwd = document.getElementById('verifyPwd').value.trim();
+  if(!pwd){
+    showToast('请输入验证密码', 'error');
+    return;
+  }
+  
+  var email = atob(_VERIFY_EMAIL_B64);
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", SUPABASE_URL + "/auth/v1/token?grant_type=password", true);
+  xhr.setRequestHeader("apikey", ANON_KEY);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      // 验证通过
+      isVerified = true;
+      sessionStorage.setItem('admin_settings_verified', '1');
+      document.getElementById('verifyMask').style.display = 'none';
+      showToast('验证成功，欢迎进入管理员设置', 'success');
+      // 验证通过后加载数据
+      loadUsers();
+    } else {
+      showToast('验证失败：密码错误，请重试', 'error');
+      document.getElementById('verifyPwd').value = '';
+      document.getElementById('verifyPwd').focus();
+    }
+  };
+  xhr.onerror = function() {
+    showToast('验证失败：网络错误', 'error');
+  };
+  xhr.send(JSON.stringify({email: email, password: pwd}));
+}
+
+// 管理员操作中心已移至本地Python脚本
+function goAdminOps(){
+  showToast('高级管理功能请使用本地Python脚本：用户管理系统.py', 'info');
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+  // 管理员身份验证（同时检查localStorage和sessionStorage）
+  try{
+    var adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    if(adm && adm.token && ADMIN_UIDS.indexOf(adm.uid) >= 0){
+      adminToken = adm.token;
+    }else{
+      showToast('请先以管理员身份登录', 'error');
+      setTimeout(function(){ location.href = 'https://cqxjw-class7-2020.pages.dev/admin-login.html'; }, 1500);
+      return;
+    }
+  }catch(e){
+    location.href = 'https://cqxjw-class7-2020.pages.dev/admin-login.html';
+    return;
+  }
+  
+  // 初始化二次验证
+  initVerify();
+  
+  // 如果已经验证过，直接加载数据
+  if(isVerified){
+    loadUsers();
+  }
+});
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('panelUsers').style.display = tab === 'users' ? 'block' : 'none';
+  document.getElementById('panelContent').style.display = tab === 'content' ? 'block' : 'none';
+  document.getElementById('panelPerms').style.display = tab === 'perms' ? 'block' : 'none';
+  document.getElementById('panelLogs').style.display = tab === 'logs' ? 'block' : 'none';
+  if(tab === 'content'){ loadMessages(); loadTickets(); loadResets(); }
+  if(tab === 'logs'){ loadLogs(); }
+}
+
+function apiGet(path){
+  return fetch(SUPABASE_URL + path, {
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + adminToken}
+  }).then(function(r){ return r.json(); });
+}
+
+function apiPatch(path, data){
+  return fetch(SUPABASE_URL + path, {
+    method: 'PATCH',
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+}
+
+function apiDelete(path){
+  return fetch(SUPABASE_URL + path, {
+    method: 'DELETE',
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + adminToken}
+  });
+}
+
+// ===== 用户管理 =====
+function loadUsers(){
+  apiGet('/rest/v1/student_profiles?select=*&order=student_id.asc').then(function(data){
+    if(!data || data.length === 0){
+      document.getElementById('userList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无用户数据</div></div>';
+      return;
+    }
+    var students = 0, teachers = 0, admins = 0;
+    var html = '<table class="data-table"><thead><tr><th>序号</th><th>学号</th><th>姓名</th><th>角色</th><th>UID(前8位)</th><th>操作</th></tr></thead><tbody>';
+    data.forEach(function(u, i){
+      var role = 'student';
+      if(u.name === '邓老师') role = 'teacher';
+      if(u.user_id === ADMIN_UID) role = 'admin';
+      if(role === 'student') students++;
+      if(role === 'teacher') teachers++;
+      if(role === 'admin') admins++;
+      // role白名单验证，防止属性注入
+      var safeRole = ['student','teacher','admin','unrestricted','super_admin'].indexOf(role) >= 0 ? role : 'student';
+      var roleClass = 'role-' + safeRole;
+      var roleText = {student:'学生', teacher:'老师', admin:'管理员', unrestricted:'不受管控', super_admin:'超级管理员'}[safeRole] || escapeHtml(role);
+      var uidShort = u.user_id ? u.user_id.substring(0,8) : '--';
+      html += '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(u.student_id || '--') + '</td><td>' + escapeHtml(u.name || '') + '</td><td><span class="role-tag ' + roleClass + '">' + roleText + '</span></td><td>' + uidShort + '</td><td><button class="btn-sm btn-warn" onclick="showToast(\'重置密码请使用本地Python脚本（用户管理.py）\',\'info\')">重置密码</button></td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('userList').innerHTML = html;
+    document.getElementById('userCount').textContent = data.length + '人';
+    document.getElementById('statTotal').textContent = data.length;
+    document.getElementById('statStudents').textContent = students;
+    document.getElementById('statTeachers').textContent = teachers;
+    document.getElementById('statAdmins').textContent = admins;
+  }).catch(function(){
+    document.getElementById('userList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">加载失败</div></div>';
+  });
+}
+
+// ===== 内容管理 - 留言墙 =====
+function loadMessages(){
+  apiGet('/rest/v1/messages?select=*&order=created_at.desc').then(function(data){
+    if(!data || data.length === 0){
+      document.getElementById('msgList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无留言</div></div>';
+      document.getElementById('msgCount').textContent = '0条';
+      return;
+    }
+    document.getElementById('msgCount').textContent = data.length + '条';
+    var html = '<table class="data-table"><thead><tr><th>ID</th><th>名字</th><th>内容</th><th>角色</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+    data.forEach(function(m){
+      var safeRole = ['admin','teacher','student','guest','dev','unrestricted'].indexOf(m.role) >= 0 ? m.role : 'student';
+      var roleText = {admin:'管理员', teacher:'老师', student:'学生', guest:'匿名', dev:'开发者', unrestricted:'不受管控'}[safeRole] || escapeHtml(m.role || '匿名');
+      var roleClass = 'role-' + safeRole;
+      var time = new Date(m.created_at).toLocaleString('zh-CN');
+      var content = (m.content || '').substring(0, 50) + ((m.content || '').length > 50 ? '...' : '');
+      html += '<tr><td>' + m.id + '</td><td>' + escapeHtml(m.name || '') + '</td><td>' + escapeHtml(content) + '</td><td><span class="role-tag ' + roleClass + '">' + roleText + '</span></td><td>' + time + '</td><td><button class="btn-sm btn-danger" onclick="deleteMessage(' + m.id + ')">删除</button></td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('msgList').innerHTML = html;
+  }).catch(function(){
+    document.getElementById('msgList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">加载失败</div></div>';
+  });
+}
+
+function deleteMessage(id){
+  verifyDangerAction(function(){
+    apiDelete('/rest/v1/messages?id=eq.' + id).then(function(r){
+      if(r.ok){
+        showToast('留言已删除', 'success');
+        loadMessages();
+      }else{
+        showToast('删除失败', 'error');
+      }
+    });
+  }, "删除留言");
+}
+
+// ===== 内容管理 - 反馈 =====
+function loadTickets(){
+  apiGet('/rest/v1/support_tickets?select=*&order=created_at.desc').then(function(data){
+    if(!data || data.length === 0){
+      document.getElementById('ticketList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无反馈</div></div>';
+      document.getElementById('ticketCount').textContent = '0条';
+      return;
+    }
+    document.getElementById('ticketCount').textContent = data.length + '条';
+    var html = '<table class="data-table"><thead><tr><th>ID</th><th>名字</th><th>分类</th><th>内容</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+    data.forEach(function(t){
+      var safeCat = ['bug','question','suggestion','other'].indexOf(t.category) >= 0 ? t.category : 'other';
+      var catText = {bug:'Bug', question:'咨询', suggestion:'建议', other:'其他'}[safeCat];
+      var statusClass = t.status === 'processed' ? 'status-processed' : 'status-pending';
+      var statusText = t.status === 'processed' ? '已处理' : '待处理';
+      var time = new Date(t.created_at).toLocaleString('zh-CN');
+      var content = (t.message || '').substring(0, 40) + ((t.message || '').length > 40 ? '...' : '');
+      var reply = t.admin_reply ? '<br><span style="color:#4ade80;font-size:11px">回复：' + escapeHtml(t.admin_reply.substring(0,20)) + '</span>' : '';
+      html += '<tr><td>' + t.id + '</td><td>' + escapeHtml(t.name || '') + '</td><td>' + catText + '</td><td>' + escapeHtml(content) + reply + '</td><td><span class="' + statusClass + '">' + statusText + '</span></td><td>' + time + '</td><td>';
+      if(t.status !== 'processed'){
+        html += '<button class="btn-sm btn-success" onclick="processTicket(' + t.id + ')">标记已处理</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('ticketList').innerHTML = html;
+  }).catch(function(){
+    document.getElementById('ticketList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">加载失败（请先运行联系管理员表SQL）</div></div>';
+  });
+}
+
+function processTicket(id){
+  apiPatch('/rest/v1/support_tickets?id=eq.' + id, {status:'processed', processed_at:new Date().toISOString()}).then(function(r){
+    if(r.ok){ showToast('已标记为已处理', 'success'); loadTickets(); }
+    else showToast('操作失败', 'error');
+  });
+}
+
+// ===== 内容管理 - 密码重置申请 =====
+function loadResets(){
+  apiGet('/rest/v1/password_resets?select=*&order=created_at.desc').then(function(data){
+    if(!data || data.length === 0){
+      document.getElementById('resetList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无重置申请</div></div>';
+      document.getElementById('resetCount').textContent = '0条';
+      return;
+    }
+    document.getElementById('resetCount').textContent = data.length + '条';
+    var html = '<table class="data-table"><thead><tr><th>ID</th><th>学号</th><th>姓名</th><th>请求的密码</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+    data.forEach(function(r){
+      var statusClass = r.status === 'processed' ? 'status-processed' : 'status-pending';
+      var statusText = r.status === 'processed' ? '已处理' : '待处理';
+      var time = new Date(r.created_at).toLocaleString('zh-CN');
+      html += '<tr><td>' + r.id + '</td><td>' + escapeHtml(r.student_id || '--') + '</td><td>' + escapeHtml(r.name || '') + '</td><td>' + escapeHtml(r.requested_password || '--') + '</td><td><span class="' + statusClass + '">' + statusText + '</span></td><td>' + time + '</td><td>';
+      if(r.status !== 'processed'){
+        html += '<button class="btn-sm btn-success" onclick="processReset(' + r.id + ')">标记已处理</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('resetList').innerHTML = html;
+  }).catch(function(){
+    document.getElementById('resetList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">加载失败（请先运行密码重置表SQL）</div></div>';
+  });
+}
+
+function processReset(id){
+  apiPatch('/rest/v1/password_resets?id=eq.' + id, {status:'processed', processed_at:new Date().toISOString()}).then(function(r){
+    if(r.ok){ showToast('已标记为已处理，请用Python脚本重置密码', 'success'); loadResets(); }
+    else showToast('操作失败', 'error');
+  });
+}
+
+// ===== 操作日志 =====
+function loadLogs(){
+  apiGet('/rest/v1/admin_records?select=*&order=created_at.desc&limit=50').then(function(data){
+    if(!data || data.length === 0){
+      document.getElementById('logList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无操作日志</div></div>';
+      document.getElementById('logCount').textContent = '0条';
+      return;
+    }
+    document.getElementById('logCount').textContent = data.length + '条';
+    var html = '';
+    data.forEach(function(l){
+      var time = new Date(l.created_at).toLocaleString('zh-CN');
+      var uidShort = l.operator_uid ? l.operator_uid.substring(0,8) : '--';
+      html += '<div class="log-item"><div class="log-action">' + escapeHtml(l.action_type || '') + '</div><div class="log-detail">' + escapeHtml(l.target_info || '') + '<br>操作者UID: ' + uidShort + '</div><div class="log-time">' + time + '</div></div>';
+    });
+    document.getElementById('logList').innerHTML = html;
+  }).catch(function(){
+    document.getElementById('logList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">加载失败</div></div>';
+  });
+}
+
+function escapeHtml(str){
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(msg, type){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type||'info');
+  setTimeout(function(){ t.classList.add('show'); }, 10);
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
+

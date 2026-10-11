@@ -1,0 +1,406 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我们的六年 - 谢家湾学校2020级7班</title>
+<link rel="icon" href='xiaohui.png' type="image/png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: #e8ecff;
+  user-select: none;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(198,107,255,0.2);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-left img { width: 40px; height: 40px; border-radius: 50%; }
+.header-title { font-size: 16px; font-weight: 700; color: #e8b8ff; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-badge {
+  background: rgba(198,107,255,0.15);
+  border: 1px solid rgba(198,107,255,0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #c66bff;
+}
+.back-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #a8a8d5;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .2s;
+}
+.back-btn:hover { background: rgba(198,107,255,0.2); color: #e8b8ff; }
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.ppt-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.ppt-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.ppt-title p {
+  color: #888;
+  font-size: 14px;
+}
+.ppt-viewer {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.ppt-iframe {
+  width: 100%;
+  height: 70vh;
+  border: none;
+  background: #fff;
+}
+.ppt-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15,12,41,0.9);
+  z-index: 10;
+}
+.ppt-loading.hidden { display: none; }
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(198,107,255,0.2);
+  border-top-color: #c66bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ppt-loading p { color: #a8a8d5; font-size: 14px; }
+.ppt-viewer:fullscreen {
+  background: #000;
+}
+.ppt-viewer:fullscreen .ppt-iframe {
+  height: 100vh;
+}
+.ppt-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.action-btn {
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.action-btn.primary {
+  background: linear-gradient(135deg, #c66bff, #64c8ff);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(198,107,255,0.3);
+}
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(198,107,255,0.4);
+}
+.action-btn.secondary {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+  color: #a8a8d5;
+}
+.action-btn.secondary:hover {
+  background: rgba(198,107,255,0.15);
+  border-color: rgba(198,107,255,0.3);
+  color: #e8b8ff;
+}
+.ppt-info {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.ppt-info h3 {
+  color: #c66bff;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.ppt-info p {
+  color: #888;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+.ppt-info .tip {
+  background: rgba(100,200,255,0.1);
+  border-left: 3px solid #64c8ff;
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  margin-top: 12px;
+  color: #64c8ff;
+  font-size: 13px;
+}
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 99999;
+  backdrop-filter: blur(10px);
+  animation: slideDown .3s ease;
+}
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 14px; }
+  .container { padding: 16px; }
+  .ppt-title h1 { font-size: 22px; }
+  .ppt-iframe { height: 50vh; }
+  .ppt-actions { flex-direction: column; }
+  .action-btn { width: 100%; justify-content: center; }
+}
+</style>
+<script src="bgm.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src='xiaohui.png' alt="校徽" onerror="this.style.display='none'">
+    <div class="header-title">我们的六年 · PPT展示</div>
+  </div>
+  <div class="header-right">
+    <div class="user-badge" id="userBadge">访客</div>
+    <button class="back-btn" onclick="goBack()">返回主页</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="ppt-title">
+    <h1>2020级7班 · 我们的六年</h1>
+    <p>记录我们从一年级到六年级的美好时光</p>
+  </div>
+  
+  <div class="ppt-viewer" id="pptViewer">
+    <iframe class="ppt-iframe" id="pptFrame" src="about:blank"></iframe>
+    <div class="ppt-loading" id="pptLoading">
+      <div class="loading-spinner"></div>
+      <p>正在加载PPT，请稍候...</p>
+    </div>
+    <div class="ppt-error" id="pptError" style="display:none;position:absolute;inset:0;background:rgba(10,14,28,0.95);z-index:10;display:flex;align-items:center;justify-content:center"></div>
+  </div>
+  
+  <div class="ppt-actions">
+    <button class="action-btn primary" onclick="toggleFullscreen()">
+      <span>⛶</span>
+      <span>全屏播放</span>
+    </button>
+    <button class="action-btn secondary" onclick="downloadPPT()">
+      <span>📥</span>
+      <span>下载PPT</span>
+    </button>
+    <button class="action-btn secondary" onclick="openInNewTab()">
+      <span>🔗</span>
+      <span>新窗口打开</span>
+    </button>
+    <button class="action-btn secondary" onclick="goBack()">
+      <span>←</span>
+      <span>返回主页</span>
+    </button>
+  </div>
+  
+  <div class="ppt-info">
+    <h3>📖 关于这个PPT</h3>
+    <p>这是我们2020级7班的毕业纪念PPT，记录了我们从一年级入学到六年级毕业的点点滴滴。</p>
+    <p>包含了我们的入学合照、运动会、六一联欢会、毕业合影等珍贵回忆。</p>
+    <div class="tip">
+      💡 提示：如果浏览器无法直接展示PPT，请点击"下载PPT"按钮下载后查看。建议使用Microsoft PowerPoint或WPS Office打开。
+    </div>
+  </div>
+</div>
+
+<script>
+// 显示当前用户状态
+(function(){
+  try{
+    var sess = JSON.parse(localStorage.getItem('sb_session')||'null');
+    var adm = JSON.parse(localStorage.getItem('sb_admin')||'null');
+    var user = sess || adm;
+    if(user && user.name){
+      document.getElementById('userBadge').textContent = user.name;
+    }else if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+      document.getElementById('userBadge').textContent = '访客';
+    }
+  }catch(e){}
+})();
+
+// 返回按钮
+function goBack(){
+  if(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')){
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
+  }else if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/visitor.html';
+  }else{
+    location.href = 'https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html';
+  }
+}
+
+// 加载PPT（跳转到新的PPT展示页面）
+function loadPPT(){ /* 直接在本页展示PPT */
+  var pptUrl = window.location.origin + window.location.pathname.replace('ppt-viewer.html', '') + 'our-six-years.pptx';
+  var viewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(pptUrl);
+  var iframe = document.getElementById('pptFrame');
+  var loading = document.getElementById('pptLoading');
+  var errorDiv = document.getElementById('pptError');
+  
+  // 隐藏错误提示
+  if(errorDiv) errorDiv.style.display = 'none';
+  
+  iframe.onload = function(){
+    setTimeout(function(){ loading.classList.add('hidden'); }, 500);
+  };
+  
+  // 8秒后如果还没加载完成，显示错误提示和备用方案
+  setTimeout(function(){
+    if(!loading.classList.contains('hidden')){
+      loading.classList.add('hidden');
+      if(errorDiv){
+        errorDiv.style.display = 'block';
+        errorDiv.innerHTML = 
+          '<div style="text-align:center;padding:40px 20px">' +
+          '<div style="font-size:48px;margin-bottom:16px">📊</div>' +
+          '<div style="font-size:18px;color:#e8efff;margin-bottom:12px">PPT在线预览加载失败</div>' +
+          '<div style="font-size:13px;color:#7a8ab5;margin-bottom:24px;line-height:1.8">可能是网络问题或在线预览服务不可用<br>您可以点击下方按钮下载PPT后本地查看</div>' +
+          '<button onclick="downloadPPT()" style="padding:12px 28px;background:linear-gradient(135deg,#4a90ff,#6b5bff);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-right:12px">📥 下载PPT</button>' +
+          '<button onclick="openPPTNewTab()" style="padding:12px 28px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;color:#c8d4f0;font-size:14px;font-weight:600;cursor:pointer">🔗 新窗口打开</button>' +
+          '</div>';
+      }
+    }
+  }, 8000);
+  
+  // 加载失败处理
+  iframe.onerror = function(){
+    loading.classList.add('hidden');
+    if(errorDiv){
+      errorDiv.style.display = 'block';
+      errorDiv.innerHTML = 
+        '<div style="text-align:center;padding:40px 20px">' +
+        '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
+        '<div style="font-size:18px;color:#e8efff;margin-bottom:12px">PPT加载出错</div>' +
+        '<div style="font-size:13px;color:#7a8ab5;margin-bottom:24px">请点击下方按钮下载PPT后本地查看</div>' +
+        '<button onclick="downloadPPT()" style="padding:12px 28px;background:linear-gradient(135deg,#4a90ff,#6b5bff);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer">📥 下载PPT</button>' +
+        '</div>';
+    }
+  };
+  
+  iframe.src = viewerUrl;
+}
+
+// 新窗口打开PPT
+function openPPTNewTab(){
+  window.open('our-six-years.pptx', '_blank');
+}
+
+// 全屏播放
+function toggleFullscreen(){
+  var viewer = document.getElementById('pptViewer');
+  if(!document.fullscreenElement){
+    if(viewer.requestFullscreen){
+      viewer.requestFullscreen();
+    }else if(viewer.webkitRequestFullscreen){
+      viewer.webkitRequestFullscreen();
+    }
+    showToast('已进入全屏模式，按ESC退出', 'success');
+  }else{
+    if(document.exitFullscreen){
+      document.exitFullscreen();
+    }else if(document.webkitExitFullscreen){
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+// 页面加载完成后加载PPT
+window.addEventListener('load', function(){
+  setTimeout(loadPPT, 300);
+});
+
+// 下载PPT
+function downloadPPT(){
+  var link = document.createElement('a');
+  link.href = 'our-six-years.pptx';
+  link.download = '2020级7班-我们的六年.pptx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('PPT下载已开始', 'success');
+}
+
+// 新窗口打开
+function openInNewTab(){
+  window.open('our-six-years.pptx', '_blank');
+}
+
+// 提示函数
+function showToast(msg, type){
+  var t = document.createElement('div');
+  t.className = 'toast';
+  if(type === 'error') t.style.background = 'rgba(239,68,68,0.95)';
+  else if(type === 'success') t.style.background = 'rgba(34,197,94,0.95)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2500);
+}
+
+// 防直达检测
+(function(){
+  var ok = false;
+  var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
+  var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
+  if(loggedIn && hasSession) ok = true;
+  if(sessionStorage.getItem('visitor_verified')) ok = true;
+  if(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')) ok = true;
+  if(!ok) location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
+})();
+</script>
+
+</body>
+</html>
