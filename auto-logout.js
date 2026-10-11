@@ -43,7 +43,7 @@
           if(window.location.pathname.indexOf('login.html') < 0 && 
              window.location.pathname.indexOf('index.html') < 0 &&
              window.location.pathname.indexOf('visitor.html') < 0){
-            window.location.href = 'login.html';
+            window.location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
           }
         }
       }catch(e){}

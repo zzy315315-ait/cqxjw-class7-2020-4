@@ -148,14 +148,14 @@ var AuthCheck = (function(){
       // 登录过期，跳转到登录页
       if(isProtectedPage()){
         showToast('登录已过期，请重新登录', 'error');
-        setTimeout(function(){ location.href = 'login.html'; }, 1500);
+        setTimeout(function(){ location.href = 'https://cqxjw-class7-2020.pages.dev/login.html'; }, 1500);
       }
       return;
     }
 
     if(isProtectedPage() && !isLoggedIn()){
       // 未登录，跳转到登录页
-      location.href = 'login.html';
+      location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
     }
   }
 
