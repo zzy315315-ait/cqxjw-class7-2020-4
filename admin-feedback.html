@@ -1,6 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 跨仓库登录态统一模块：必须最先加载，同步解析 URL 上的 ?auth= / ?guest=1 -->
+<script src="xauth.js"></script>
 <script src="direct-access-check.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -387,6 +389,10 @@ function filterByCategory(cat) {
 // 获取当前用户
 function getCurrentUser() {
   try {
+    // 跨域进入时 ?auth= 已由 xauth.js 落盘，优先取 XAUTH 的登录态
+    if (window.XAUTH && XAUTH.getUser()) {
+      return XAUTH.getUser();
+    }
     const session = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
     if (session) return session;
   } catch(e) {}
@@ -396,7 +402,7 @@ function getCurrentUser() {
 // 检查管理员权限
 function checkAdmin() {
   currentUser = getCurrentUser();
-  if (!currentUser || !ADMIN_UIDS.includes(currentUser.uid)) {
+  if (!currentUser || !(ADMIN_UIDS.includes(currentUser.uid) || currentUser.role === 'admin' || currentUser.role === 'super_admin')) {
     showToast('无权限访问，请先登录管理员账号');
     setTimeout(() => { location.href = 'https://cqxjw-class7-2020.pages.dev/admin-login.html'; }, 1500);
     return false;

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 跨仓库登录态统一模块：必须最先加载，同步解析 URL 上的 ?auth= / ?guest=1 -->
+<script src="xauth.js"></script>
 <script src="direct-access-check.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -401,10 +403,14 @@ function goAdminOps(){
 }
 
 window.addEventListener('DOMContentLoaded', function(){
-  // 管理员身份验证（同时检查localStorage和sessionStorage）
+  // 管理员身份验证：跨域进入时 ?auth= 已由 xauth.js 落盘，优先用 XAUTH
   try{
-    var adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
-    if(adm && adm.token && ADMIN_UIDS.indexOf(adm.uid) >= 0){
+    var adm = (window.XAUTH && XAUTH.getUser()) ? XAUTH.getUser() : null;
+    if(!adm){
+      adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    }
+    var isAdmin = !!(adm && adm.uid && (ADMIN_UIDS.indexOf(adm.uid) >= 0 || adm.role === 'admin' || adm.role === 'super_admin'));
+    if(adm && adm.token && isAdmin){
       adminToken = adm.token;
     }else{
       showToast('请先以管理员身份登录', 'error');

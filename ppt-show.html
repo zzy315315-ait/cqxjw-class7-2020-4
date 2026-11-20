@@ -1,6 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 跨仓库登录态统一模块：必须最先加载，同步解析 URL 上的 ?auth= / ?guest=1 -->
+<script src="xauth.js"></script>
 <script src="direct-access-check.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -514,8 +516,9 @@ var isAdminUser = false;
     var adm = null;
     try{ sess = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null'); }catch(e){}
     try{ adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null'); }catch(e){}
-    currentUser = sess || adm;
-    isAdminUser = !!(adm && adm.uid) || (currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin'));
+    // 跨域进入时 ?auth= 已由 xauth.js 落盘，优先取 XAUTH 的登录态
+    currentUser = (window.XAUTH && XAUTH.getUser()) ? XAUTH.getUser() : (sess || adm);
+    isAdminUser = !!(currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin')) || !!(adm && adm.uid);
     
     function updateBadge(){
       var userBadge = document.getElementById('userBadge');
@@ -604,16 +607,25 @@ function downloadPPT() {
   window.open('our-six-years.pptx', '_blank');
 }
 
+// 跨仓库跳转：必须带身份（登录用户带 auth，访客带 guest=1），否则目标站会当成未登录
+function crossGo(url) {
+  if (window.XAUTH) {
+    XAUTH.go(url);
+  } else {
+    location.href = url;
+  }
+}
+
 // 返回主页
 function goBack() {
-  if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/visitor.html';
+  if((window.XAUTH && XAUTH.isGuest()) || sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/visitor.html');
   }else if(isAdminUser){
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/admin-main.html');
   }else if(currentUser){
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html';
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html');
   }else{
-    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
+    location.href = (window.XAUTH ? XAUTH.LOGIN_PAGE : 'https://cqxjw-class7-2020.pages.dev/login.html');
   }
 }
 

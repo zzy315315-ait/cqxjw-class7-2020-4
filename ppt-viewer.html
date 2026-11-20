@@ -1,6 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 跨仓库登录态统一模块：必须最先加载，同步解析 URL 上的 ?auth= / ?guest=1 -->
+<script src="xauth.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我们的六年 - 谢家湾学校2020级7班</title>
@@ -263,23 +265,35 @@ body {
   try{
     var sess = JSON.parse(localStorage.getItem('sb_session')||'null');
     var adm = JSON.parse(localStorage.getItem('sb_admin')||'null');
-    var user = sess || adm;
+    // 跨域进入时 ?auth= 已由 xauth.js 落盘，优先取 XAUTH 的登录态
+    var user = (window.XAUTH && XAUTH.getUser()) ? XAUTH.getUser() : (sess || adm);
     if(user && user.name){
       document.getElementById('userBadge').textContent = user.name;
-    }else if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    }else if((window.XAUTH && XAUTH.isGuest()) || sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
       document.getElementById('userBadge').textContent = '访客';
     }
   }catch(e){}
 })();
 
+// 跨仓库跳转：必须带身份（登录用户带 auth，访客带 guest=1），否则目标站会当成未登录
+function crossGo(url){
+  if(window.XAUTH){
+    XAUTH.go(url);
+  }else{
+    location.href = url;
+  }
+}
+
 // 返回按钮
 function goBack(){
-  if(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')){
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/admin-main.html';
-  }else if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/visitor.html';
+  if((window.XAUTH && XAUTH.isGuest()) || sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/visitor.html');
+  }else if((window.XAUTH && XAUTH.getUser() && (XAUTH.getUser().role === 'admin' || XAUTH.getUser().role === 'super_admin')) || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')){
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/admin-main.html');
+  }else if(window.XAUTH ? XAUTH.isLoggedIn() : (localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session'))){
+    crossGo('https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html');
   }else{
-    location.href = 'https://cqxjw-class7-2020-2.pages.dev/a3x7k2m9p4q8r3t6w1y5u0i2o4.html';
+    location.href = (window.XAUTH ? XAUTH.LOGIN_PAGE : 'https://cqxjw-class7-2020.pages.dev/login.html');
   }
 }
 
@@ -390,15 +404,19 @@ function showToast(msg, type){
   setTimeout(function(){ t.remove(); }, 2500);
 }
 
-// 防直达检测
+// 防直达检测（跨域进入的身份已由 xauth.js 落盘）
 (function(){
   var ok = false;
-  var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
-  var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
-  if(loggedIn && hasSession) ok = true;
-  if(sessionStorage.getItem('visitor_verified')) ok = true;
-  if(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')) ok = true;
-  if(!ok) location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
+  if(window.XAUTH){
+    ok = XAUTH.isLoggedIn() || XAUTH.isGuest();
+  }else{
+    var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
+    var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
+    if(loggedIn && hasSession) ok = true;
+    if(sessionStorage.getItem('visitor_verified')) ok = true;
+    if(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin')) ok = true;
+  }
+  if(!ok) location.href = (window.XAUTH ? XAUTH.LOGIN_PAGE : 'https://cqxjw-class7-2020.pages.dev/login.html');
 })();
 </script>
 
