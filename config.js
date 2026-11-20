@@ -52,7 +52,6 @@ var CONFIG = {
     conversation: "https://cqxjw-class7-2020-3.pages.dev/conversation.html",
     about: "https://cqxjw-class7-2020-3.pages.dev/about.html",
     gallery: "https://cqxjw-class7-2020-3.pages.dev/gallery.html",
-    videos: "https://cqxjw-class7-2020-3.pages.dev/videos.html",
     classwall: "https://cqxjw-class7-2020-3.pages.dev/classwall.html",
     developers: "https://cqxjw-class7-2020-3.pages.dev/developers.html",
     classmates: "https://cqxjw-class7-2020-3.pages.dev/classmates.html"

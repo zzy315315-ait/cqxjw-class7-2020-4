@@ -42,7 +42,6 @@ var PAGE_SITE = {
   // 主站三（更多功能）
   'message.html': 'mainSite3',
   'gallery.html': 'mainSite3',
-  'videos.html': 'mainSite3',
   'classwall.html': 'mainSite3',
   'contact-admin.html': 'mainSite3',
   'conversation.html': 'mainSite3',
