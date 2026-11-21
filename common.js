@@ -143,9 +143,7 @@ function logout(){
   }
   
   showToast('已退出登录，所有用户信息已清除', 'success');
-  setTimeout(function(){
-    window.location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
-  }, 800);
+  location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 
 // 返回按钮：根据登录状态和访客模式自动判断

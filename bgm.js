@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 背景音乐控制模块（最终修复版）
 // 功能：只在非登录页面播放、静音控制、记住用户设置、断点续传
 // ============================================================
@@ -103,9 +103,10 @@ var BGM = (function(){
     var savedState = restoreState();
     
     // 创建音频元素
-    audio = new Audio('bgm.mp3');
+    audio = new Audio();
     audio.loop = true;
     audio.volume = 0.4;
+    audio.preload = 'none';
     
     // 读取用户静音设置
     var savedMuted = localStorage.getItem('bgm_muted');
@@ -147,31 +148,9 @@ var BGM = (function(){
     window.addEventListener('beforeunload', saveState);
     window.addEventListener('pagehide', saveState);
     
-    // 监听用户首次交互（解决浏览器自动播放限制）
-    var startOnInteract = function(){
-      if(hasInteracted) return;
-      hasInteracted = true;
-      if(!isMuted){
-        play();
-      }
-      // 移除事件监听
-      document.removeEventListener('click', startOnInteract);
-      document.removeEventListener('keydown', startOnInteract);
-      document.removeEventListener('touchstart', startOnInteract);
-    };
-    document.addEventListener('click', startOnInteract);
-    document.addEventListener('keydown', startOnInteract);
-    document.addEventListener('touchstart', startOnInteract);
+    // 性能优化：不再监听全站首次点击自动播放，避免每次点页面都尝试加载音频
     
-    // 尝试自动播放（可能被浏览器阻止）
-    if(!isMuted && (wasPlaying || !localStorage.getItem('bgm_played'))){
-      audio.play().then(function(){
-        isPlaying = true;
-        localStorage.setItem('bgm_played', '1');
-      }).catch(function(){
-        isPlaying = false;
-      });
-    }
+    // 性能优化：不再自动播放/自动下载背景音乐，用户点击右上角 🎵 按钮后才加载
     
     // 创建控制按钮
     createControlButton();
@@ -180,6 +159,7 @@ var BGM = (function(){
   // 播放
   function play(){
     if(!audio || !shouldPlayMusic()) return;
+    if(!audio.src) audio.src = 'bgm.mp3';
     audio.play().then(function(){
       isPlaying = true;
       saveState();
@@ -255,7 +235,8 @@ var BGM = (function(){
     btn.onmouseout = function(){ this.style.background = 'rgba(20,24,44,0.85)'; this.style.transform = 'scale(1)'; };
     btn.onclick = function(e){
       e.stopPropagation();
-      toggleMute();
+      if(isPlaying){ pause(); }
+      else { if(isMuted){ setMuted(false); } play(); }
     };
     document.body.appendChild(btn);
     updateUI();
@@ -282,11 +263,9 @@ var BGM = (function(){
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', function(){
       init();
-      showAnnoyanceTip();
     });
   }else{
     init();
-    showAnnoyanceTip();
   }
   
   // 暴露公共方法

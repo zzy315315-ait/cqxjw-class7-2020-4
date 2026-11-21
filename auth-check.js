@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 认证检测模块 - 后台自动检测登录状态 + 防直连检测
 // 使用方式：在页面中引入 <script src="auth-check.js"></script>
 // ============================================================
@@ -148,7 +148,7 @@ var AuthCheck = (function(){
       // 登录过期，跳转到登录页
       if(isProtectedPage()){
         showToast('登录已过期，请重新登录', 'error');
-        setTimeout(function(){ location.href = 'https://cqxjw-class7-2020.pages.dev/login.html'; }, 1500);
+        location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
       }
       return;
     }
