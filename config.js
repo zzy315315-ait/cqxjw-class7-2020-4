@@ -14,7 +14,7 @@ var CONFIG = {
   ],
 
   // 开发者学号
-  DEV_SIDS: ["3", "12", "19"],
+  DEV_SIDS: ["12"],
 
   // 老师邮箱
   TEACHER_EMAIL: "denglaoshi@class20207.com",
