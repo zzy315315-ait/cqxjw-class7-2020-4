@@ -247,6 +247,80 @@
     return false;
   }
 
+  /* ---------------- 跨站导航链接统一携带身份 ----------------
+   * 四个站点页面里的导航链接大量是裸写的 https://cqxjw-class7-2020-x.pages.dev/xxx，
+   * 直接点过去目标域拿不到登录态（会显示"未登录"或弹回登录页）。
+   * 这里统一做一次点击拦截：只要是跳到另外三个站点的链接，就改走 XAUTH.go()，
+   * 自动带上 auth / guest 参数。onclick="location.href='...'" 和 <a href> 都覆盖。
+   * 登录仓库（仓库1）的公开入口不带身份，避免把旧身份带进登录页。
+   * ------------------------------------------------------------------ */
+  function hostOf(url) {
+    var m = String(url || '').match(/^https?:\/\/([^\/?#]+)/i);
+    return m ? m[1].toLowerCase() : '';
+  }
+
+  var LOGIN_HOST = hostOf(SITES.login);
+
+  function isCrossSiteUrl(url) {
+    var h = hostOf(url);
+    if (!h) return false;
+    var known = false;
+    for (var k in SITES) {
+      if (Object.prototype.hasOwnProperty.call(SITES, k) && hostOf(SITES[k]) === h) { known = true; break; }
+    }
+    if (!known) return false;
+    return h !== String(global.location.hostname || '').toLowerCase();
+  }
+
+  function urlFromOnclick(attr) {
+    if (!attr) return '';
+    var m = attr.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/);
+    if (m) return m[1];
+    m = attr.match(/location\.replace\(\s*['"]([^'"]+)['"]/);
+    if (m) return m[1];
+    return '';
+  }
+
+  function bindCrossSiteLinks() {
+    if (!global.document || !global.document.addEventListener) return;
+    global.document.addEventListener('click', function (ev) {
+      try {
+        if (ev.defaultPrevented) return;
+        if (ev.button && ev.button !== 0) return;
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+
+        var el = ev.target;
+        var url = '';
+        var depth = 0;
+        while (el && el.nodeType === 1 && depth < 8) {
+          if (el.getAttribute) {
+            var oc = el.getAttribute('onclick');
+            if (oc) {
+              var u = urlFromOnclick(oc);
+              if (u) { url = u; break; }
+            }
+            if (el.tagName === 'A') {
+              if (el.getAttribute('target') === '_blank') return;
+              var href = el.getAttribute('href') || '';
+              if (/^https?:\/\//i.test(href)) { url = href; break; }
+            }
+          }
+          el = el.parentNode;
+          depth++;
+        }
+
+        if (!url) return;
+        if (!isCrossSiteUrl(url)) return;
+        if (/[?&](auth|guest)=/.test(url)) return;      // 已带身份，不重复处理
+        if (hostOf(url) === LOGIN_HOST) return;          // 登录入口保持干净
+
+        ev.preventDefault();
+        ev.stopPropagation();
+        go(url);
+      } catch (e) {}
+    }, true);
+  }
+
   /* ---------------- 顶部小提示框（不遮挡页面中心） ---------------- */
   function toast(msg, type, duration) {
     type = type || 'info';
@@ -297,6 +371,7 @@
     requireLogin: requireLogin,
     logout: logout,
     clear: clearAll,
+    bindCrossSiteLinks: bindCrossSiteLinks,
     toast: toast
   };
 
@@ -304,4 +379,6 @@
 
   // 关键：脚本一加载就同步接收 URL 上的身份，必须早于 auth-check.js 的跳转判断
   receive();
+  // 把所有"跳到另外三个站点"的导航链接统一改成带身份跳转
+  bindCrossSiteLinks();
 })(window);
