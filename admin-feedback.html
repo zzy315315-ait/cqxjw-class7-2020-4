@@ -605,7 +605,16 @@ async function sendChatMessage() {
       replied_at: new Date().toISOString(),
       status: 'resolved'
     }, { id: 'eq.' + currentFeedback.id });
-    
+
+    // 给用户发一条站内消息通知
+    if(currentFeedback.user_id){
+      fetch(`${SUPABASE_URL}/rest/v1/user_messages`, {
+        method: 'POST',
+        headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+        body: JSON.stringify({user_id: currentFeedback.user_id, title: '管理员回复了你的反馈', content: message, msg_type: 'admin', ticket_id: currentFeedback.id, sender_name: '管理员', is_read: false})
+      }).catch(function(){});
+    }
+
     // 添加到聊天区域
     const chatArea = document.getElementById('chatArea');
     if (chatArea.querySelector('div').style.textAlign === 'center') chatArea.innerHTML = '';
