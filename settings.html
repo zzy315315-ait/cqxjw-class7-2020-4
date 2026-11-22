@@ -148,12 +148,23 @@
   <!-- 修改昵称 -->
   <div class="card">
     <div class="card-title">✏️ 修改昵称</div>
-    <div class="hint-box">修改昵称后，留言墙和反馈中显示的名字会更新。</div>
+    <div class="hint-box">昵称仅用于展示，真实姓名不可修改；他人查看时括号内仍会显示你的真名与学号。</div>
     <div class="form-group">
-      <label class="form-label">新昵称</label>
-      <input type="text" class="form-input" id="newNickname" placeholder="请输入新昵称" maxlength="20">
+      <label class="form-label">昵称</label>
+      <input type="text" class="form-input" id="newNickname" placeholder="不填则显示真名" maxlength="20">
     </div>
     <button class="btn-primary" onclick="saveNickname()">保存昵称</button>
+  </div>
+
+  <!-- 个人简介 -->
+  <div class="card">
+    <div class="card-title">📝 个人简介</div>
+    <div class="hint-box">写一句自我介绍，会展示在全员列表你的卡片上。</div>
+    <div class="form-group">
+      <textarea class="form-input" id="bioTextarea" maxlength="100" rows="3" placeholder="介绍一下自己吧（最多100字）" style="resize:vertical"></textarea>
+      <div style="text-align:right;font-size:11px;color:#5a6890;margin-top:6px"><span id="bioCount">0</span> / 100</div>
+    </div>
+    <button class="btn-primary" onclick="saveBio()">保存简介</button>
   </div>
 
   <!-- 我的留言 -->
@@ -227,7 +238,14 @@ window.addEventListener('DOMContentLoaded', function(){
   var roleClass = 'role-' + safeRole;
   document.getElementById('userRole').innerHTML = '<span class="role-tag ' + roleClass + '">' + roleText + '</span>';
   document.getElementById('userRoleDesc').textContent = roleText + ' · 2020级7班';
-  document.getElementById('newNickname').value = currentUser.name || '';
+  document.getElementById('newNickname').value = '';
+  document.getElementById('bioTextarea').value = '';
+  document.getElementById('bioCount').textContent = '0';
+  document.getElementById('bioTextarea').addEventListener('input', function(){
+    document.getElementById('bioCount').textContent = this.value.length;
+  });
+
+  loadMyProfile();
   
   // 显示账号安全信息
   try{
@@ -385,35 +403,54 @@ function loadMyTickets(){
   });
 }
 
-function saveNickname(){
-  var newName = document.getElementById('newNickname').value.trim();
-  if(!newName){ showToast('昵称不能为空', 'error'); return; }
-  if(newName.length > 30){ showToast('昵称最多30个字符', 'error'); return; }
-  if(newName === currentUser.name){ showToast('昵称没有变化', 'info'); return; }
+function loadMyProfile(){
+  if(!currentUser || !currentUser.uid) return;
+  fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid + '&select=name,nickname,bio,student_id', {
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + (currentUser.token || ANON_KEY)}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var p = (data && data.length > 0) ? data[0] : null;
+    if(p){
+      if(p.name){
+        currentUser.name = p.name;
+        if(p.student_id) currentUser.student_id = p.student_id;
+        document.getElementById('userName').textContent = p.name;
+        document.getElementById('userAvatar').textContent = p.name.charAt(0);
+        document.getElementById('userSid').textContent = p.student_id || currentUser.student_id || (currentUser.email ? currentUser.email.split('@')[0] : '--');
+      }
+      document.getElementById('newNickname').value = p.nickname || '';
+      document.getElementById('bioTextarea').value = p.bio || '';
+      document.getElementById('bioCount').textContent = (p.bio || '').length;
+    }
+  }).catch(function(){});
+}
 
-  // 先检查student_profiles表中是否有用户记录
+function saveNickname(){
+  var newNick = document.getElementById('newNickname').value.trim();
+  if(newNick.length > 30){ showToast('昵称最多30个字符', 'error'); return; }
+
   fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
     headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token}
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
     if(data && data.length > 0){
-      // 有记录，更新
       return fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
         method: 'PATCH',
         headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token, 'Content-Type': 'application/json'},
-        body: JSON.stringify({name: newName, updated_at: new Date().toISOString()})
+        body: JSON.stringify({nickname: newNick, updated_at: new Date().toISOString()})
       });
     }else{
-      // 没有记录，创建
       return fetch(SUPABASE_URL + '/rest/v1/student_profiles', {
         method: 'POST',
         headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token, 'Content-Type': 'application/json'},
         body: JSON.stringify({
           user_id: currentUser.uid,
-          name: newName,
+          name: currentUser.name || '',
           student_id: currentUser.student_id || '',
-          email: currentUser.email || '',
+          nickname: newNick,
+          bio: '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -422,29 +459,56 @@ function saveNickname(){
   })
   .then(function(r){
     if(r.ok || r.status === 200 || r.status === 201){
-      // 更新本地session
-      currentUser.name = newName;
-      ['sb_session', 'sb_admin'].forEach(function(key){
-        if(localStorage.getItem(key)){
-          var sess = JSON.parse(localStorage.getItem(key));
-          sess.name = newName;
-          localStorage.setItem(key, JSON.stringify(sess));
-        }
-        if(sessionStorage.getItem(key)){
-          var sess = JSON.parse(sessionStorage.getItem(key));
-          sess.name = newName;
-          sessionStorage.setItem(key, JSON.stringify(sess));
-        }
-      });
-      document.getElementById('userName').textContent = newName;
-      document.getElementById('userAvatar').textContent = newName.charAt(0);
-      showToast('昵称修改成功', 'success');
+      showToast('昵称保存成功', 'success');
     }else{
-      return r.text().then(function(e){ throw new Error(e || '修改失败，可能权限不足'); });
+      return r.text().then(function(e){ throw new Error(e || '保存失败，可能权限不足'); });
     }
   })
   .catch(function(err){
-    showToast('修改失败：' + err.message, 'error');
+    showToast('保存失败：' + err.message, 'error');
+  });
+}
+
+function saveBio(){
+  var bio = document.getElementById('bioTextarea').value.trim();
+  if(bio.length > 100){ showToast('简介最多100字', 'error'); return; }
+
+  fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.length > 0){
+      return fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
+        method: 'PATCH',
+        headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token, 'Content-Type': 'application/json'},
+        body: JSON.stringify({bio: bio, updated_at: new Date().toISOString()})
+      });
+    }else{
+      return fetch(SUPABASE_URL + '/rest/v1/student_profiles', {
+        method: 'POST',
+        headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token, 'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          user_id: currentUser.uid,
+          name: currentUser.name || '',
+          student_id: currentUser.student_id || '',
+          nickname: '',
+          bio: bio,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      });
+    }
+  })
+  .then(function(r){
+    if(r.ok || r.status === 200 || r.status === 201){
+      showToast('简介保存成功', 'success');
+    }else{
+      return r.text().then(function(e){ throw new Error(e || '保存失败，可能权限不足'); });
+    }
+  })
+  .catch(function(err){
+    showToast('保存失败：' + err.message, 'error');
   });
 }
 
