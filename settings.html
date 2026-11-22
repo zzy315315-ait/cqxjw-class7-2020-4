@@ -202,7 +202,7 @@ window.addEventListener('DOMContentLoaded', function(){
       currentUser = sess || adm;
     }
     console.log('currentUser:', currentUser ? currentUser.name : 'null');
-    if(!currentUser || !currentUser.token){
+    if(!currentUser || (!currentUser.uid && !currentUser.token)){
       showToast('请先登录', 'error');
       location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
       return;
