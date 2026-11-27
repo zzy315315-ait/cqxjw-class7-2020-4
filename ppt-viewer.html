@@ -299,7 +299,9 @@ function goBack(){
 }
 
 // 加载PPT（跳转到新的PPT展示页面）
-function loadPPT(){ /* 直接在本页展示PPT */
+function loadPPT(){ /* 静态幻灯片展示，不走外部在线预览，避免网络超时报错 */
+  location.href = 'ppt-show.html';
+  return;
   var pptUrl = window.location.origin + window.location.pathname.replace('ppt-viewer.html', '') + 'our-six-years.pptx';
   var viewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(pptUrl);
   var iframe = document.getElementById('pptFrame');

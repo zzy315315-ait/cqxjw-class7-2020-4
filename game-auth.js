@@ -39,8 +39,10 @@ var GameAuth = (function() {
     }
   }
 
-  // 获取当前登录用户信息
+  // 获取当前登录用户信息（优先 URL/sessionStorage 跨域身份，兜底本地存储）
   function getCurrentUser() {
+    var g = receiveAuth();
+    if (g && !g.is_guest && g.uid) return g;
     try {
       var sess = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null');
       var adm = JSON.parse(localStorage.getItem('sb_admin') || 'null');

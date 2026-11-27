@@ -32,6 +32,9 @@
 
   var KEY = 'cxjw2020class7star_crossdomain';
 
+  var SUPABASE_URL = 'https://ekfntkpjqzmkibdimtru.supabase.co';
+  var ANON_KEY = 'sb_publishable_Z3wpxD9ZRbXm9-gPPQOGZg_KKhr_yIs';
+
   var SITES = {
     login: 'https://cqxjw-class7-2020.pages.dev',
     home: 'https://cqxjw-class7-2020-2.pages.dev',
@@ -74,9 +77,15 @@
     } catch (e) { return null; }
   }
 
+  function isValidSession(u) {
+    if (!u || !u.uid) return false;
+    if (u.exp && !isNaN(Number(u.exp)) && Number(u.exp) > 0 && Date.now() > Number(u.exp)) return false;
+    return true;
+  }
+
   function getUser() {
     var u = getRawSession();
-    if (!u || !u.uid) return null;
+    if (!isValidSession(u)) { clearAll(); return null; }
     return u;
   }
 
@@ -88,7 +97,8 @@
       email: data.email || '',
       role: data.role || 'student',
       token: data.token || '',
-      exp: data.exp || 0
+      exp: data.exp || 0,
+      login_at: data.login_at || Date.now()
     };
     var raw = JSON.stringify(u);
     try {
@@ -126,19 +136,87 @@
   }
 
   function clearAll() {
+    var fixed = ['sb_session', 'sb_admin', 'sb_user', 'logged_in', 'login_expire', 'is_admin',
+      'mode', 'visitor_verified', 'visitor_from_login', 'keep_login'];
+    function purge(store) {
+      try {
+        fixed.forEach(function (k) { store.removeItem(k); });
+        for (var i = store.length - 1; i >= 0; i--) {
+          var k = store.key(i);
+          if (k && (k.indexOf('sb_') === 0 || k.indexOf('user_') === 0 ||
+            k.indexOf('auth_') === 0 || k.indexOf('token_') === 0)) {
+            store.removeItem(k);
+          }
+        }
+      } catch (e) {}
+    }
+    purge(localStorage);
+    purge(sessionStorage);
+  }
+
+  function getSupabase() {
+    return {
+      url: (global.CONFIG && global.CONFIG.SUPABASE_URL) || SUPABASE_URL,
+      key: (global.CONFIG && global.CONFIG.ANON_KEY) || ANON_KEY
+    };
+  }
+
+  // 上报 login / logout 事件到服务端日志（失败静默，不阻断流程）
+  function reportEvent(event, user) {
+    var u = user || getUser();
+    if (!u || !u.uid) return;
+    var sb = getSupabase();
     try {
-      ['sb_session', 'sb_admin', 'logged_in', 'login_expire', 'is_admin', 'mode',
-       'visitor_verified', 'visitor_from_login'].forEach(function (k) {
-        localStorage.removeItem(k);
-        sessionStorage.removeItem(k);
-      });
+      fetch(sb.url + '/rest/v1/login_logs', {
+        method: 'POST',
+        headers: {
+          'apikey': sb.key,
+          'Authorization': 'Bearer ' + (u.token || sb.key),
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          user_id: u.uid, name: u.name || '', student_id: u.student_id || '',
+          role: u.role || '', event: event, created_at: new Date().toISOString()
+        })
+      }).catch(function () {});
     } catch (e) {}
   }
 
+  // 服务端会话校验：跨域名本地存储互不可清，退出时服务端记一条 logout；
+  // 各站加载时比对本会话登录时间，若最新事件是晚于本次登录的 logout，判定已退出并清站跳登录。
+  // 表未建 / 网络异常 / 无记录时宽容放行，不误踢已登录用户。
+  function verifyServerSession() {
+    var u = getUser();
+    if (!u || !u.uid) return Promise.resolve(true);
+    var sb = getSupabase();
+    return fetch(sb.url + '/rest/v1/login_logs?user_id=eq.' + encodeURIComponent(u.uid) +
+      '&select=event,created_at&order=created_at.desc&limit=1', {
+        headers: { 'apikey': sb.key, 'Authorization': 'Bearer ' + (u.token || sb.key) }
+      })
+      .then(function (r) { if (!r.ok) return null; return r.json(); })
+      .then(function (data) {
+        if (!data || !data.length) return true;
+        var last = data[0];
+        if (last.event !== 'logout') return true;
+        var logoutMs = last.created_at ? new Date(last.created_at).getTime() : 0;
+        var loginMs = Number(u.login_at) || 0;
+        if (loginMs > 0 && logoutMs > 0 && logoutMs >= loginMs - 5000) {
+          clearAll();
+          try { global.location.replace(LOGIN_PAGE); } catch (e) { global.location.href = LOGIN_PAGE; }
+          return false;
+        }
+        return true;
+      })
+      .catch(function () { return true; });
+  }
+
   function logout() {
+    var u = getUser();
+    reportEvent('logout', u);
     clearAll();
     toast('已退出登录', 'success');
-    setTimeout(function () { location.href = LOGIN_PAGE; }, 800);
+    setTimeout(function () { location.href = LOGIN_PAGE; }, 600);
   }
 
   /* ---------------- 解析 URL 上的 auth / guest ---------------- */
@@ -220,6 +298,7 @@
         role: u.role,
         token: u.token || '',
         exp: u.exp || 0,
+        login_at: u.login_at || Date.now(),
         timestamp: Date.now()
       });
     } else if (isGuest()) {
@@ -371,6 +450,8 @@
     requireLogin: requireLogin,
     logout: logout,
     clear: clearAll,
+    reportEvent: reportEvent,
+    verifyServerSession: verifyServerSession,
     bindCrossSiteLinks: bindCrossSiteLinks,
     toast: toast
   };
@@ -381,4 +462,6 @@
   receive();
   // 把所有"跳到另外三个站点"的导航链接统一改成带身份跳转
   bindCrossSiteLinks();
+  // 异步校验服务端会话：若本账号在别处已退出，清掉本域残留并跳登录（失败宽容放行）
+  verifyServerSession();
 })(window);

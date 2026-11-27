@@ -51,6 +51,8 @@
   .btn-primary:disabled{opacity:.5;cursor:not-allowed}
   .btn-outline{width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#c8d4f0;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s}
   .btn-outline:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.25)}
+  .btn-small{margin-left:auto;padding:7px 14px;border-radius:9px;background:rgba(59,130,246,0.12);border:1px solid rgba(96,165,250,0.35);color:#93c5fd;font-size:12px;font-weight:600;cursor:pointer;transition:all .25s;white-space:nowrap}
+  .btn-small:hover{background:rgba(59,130,246,0.22);border-color:rgba(96,165,250,0.55);color:#fff}
   .my-item{padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:10px;margin-bottom:8px;border-left:3px solid rgba(91,168,255,0.4)}
   .my-item-content{font-size:13px;color:#c8d4f0;line-height:1.6;margin-bottom:4px}
   .my-item-time{font-size:11px;color:#5a6890}
@@ -153,7 +155,7 @@
       <label class="form-label">昵称</label>
       <input type="text" class="form-input" id="newNickname" placeholder="不填则显示真名" maxlength="20">
     </div>
-    <button class="btn-primary" onclick="saveNickname()">保存昵称</button>
+    <button class="btn-primary" id="nickBtn" onclick="saveNickname()">保存昵称</button>
   </div>
 
   <!-- 个人简介 -->
@@ -164,7 +166,7 @@
       <textarea class="form-input" id="bioTextarea" maxlength="100" rows="3" placeholder="介绍一下自己吧（最多100字）" style="resize:vertical"></textarea>
       <div style="text-align:right;font-size:11px;color:#5a6890;margin-top:6px"><span id="bioCount">0</span> / 100</div>
     </div>
-    <button class="btn-primary" onclick="saveBio()">保存简介</button>
+    <button class="btn-primary" id="bioBtn" onclick="saveBio()">保存简介</button>
   </div>
 
   <!-- 我的留言 -->
@@ -175,7 +177,9 @@
 
   <!-- 我的反馈 -->
   <div class="card">
-    <div class="card-title">📮 我的反馈 <span id="myTicketCount" style="font-size:12px;color:#7a8ab5;font-weight:400"></span></div>
+    <div class="card-title">📮 我的反馈 <span id="myTicketCount" style="font-size:12px;color:#7a8ab5;font-weight:400"></span>
+      <button class="btn-small" onclick="crossGo('https://cqxjw-class7-2020-3.pages.dev/contact-admin.html')">✉️ 联系管理员 / 新增反馈</button>
+    </div>
     <div id="myTickets"><div class="loading">加载中...</div></div>
   </div>
 </div>
@@ -247,21 +251,8 @@ window.addEventListener('DOMContentLoaded', function(){
 
   loadMyProfile();
   
-  // 显示账号安全信息
-  try{
-    var lastLogin = localStorage.getItem('last_login_time');
-    if(lastLogin){
-      document.getElementById('lastLoginTime').textContent = new Date(parseInt(lastLogin)).toLocaleString('zh-CN');
-    }else{
-      document.getElementById('lastLoginTime').textContent = '未知';
-    }
-    var loginCnt = localStorage.getItem('login_count_' + currentUser.uid);
-    if(loginCnt){
-      document.getElementById('loginCount').textContent = loginCnt + ' 次';
-    }else{
-      document.getElementById('loginCount').textContent = '1 次';
-    }
-  }catch(e){}
+  // 登录次数与最近登录时间：从服务端登录日志统计
+  loadLoginStats();
 
   loadMyMessages();
   loadMyTickets();
@@ -329,29 +320,6 @@ function copyAllInfo(){
   }
 }
 
-// 退出登录
-function logout(){
-  if(!confirm('确定要退出登录吗？')) return;
-  try{
-    // 清除所有登录状态
-    localStorage.removeItem('sb_session');
-    localStorage.removeItem('sb_admin');
-    localStorage.removeItem('sb_user');
-    localStorage.removeItem('logged_in');
-    localStorage.removeItem('login_expire');
-    localStorage.removeItem('is_admin');
-    localStorage.removeItem('keep_login');
-    sessionStorage.removeItem('sb_session');
-    sessionStorage.removeItem('sb_admin');
-    sessionStorage.removeItem('sb_user');
-    sessionStorage.removeItem('logged_in');
-    sessionStorage.removeItem('is_admin');
-    sessionStorage.removeItem('visitor_verified');
-    sessionStorage.removeItem('mode');
-  }catch(e){}
-  showToast('已退出登录', 'success');
-  location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
-}
 
 function loadMyMessages(){
   fetch(SUPABASE_URL + '/rest/v1/messages?select=*&uid=eq.' + currentUser.uid + '&order=created_at.desc', {
@@ -403,6 +371,29 @@ function loadMyTickets(){
   });
 }
 
+// 从服务端登录日志统计登录次数与最近登录时间
+function loadLoginStats(){
+  if(!currentUser || !currentUser.uid) return;
+  fetch(SUPABASE_URL + '/rest/v1/login_logs?user_id=eq.' + currentUser.uid + '&event=eq.login&select=created_at&order=created_at.desc', {
+    headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + (currentUser.token || ANON_KEY)}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(!Array.isArray(data)) throw new Error('bad');
+    var cnt = data.length;
+    document.getElementById('loginCount').textContent = cnt > 0 ? cnt + ' 次' : '0 次';
+    if(cnt > 0 && data[0].created_at){
+      document.getElementById('lastLoginTime').textContent = new Date(data[0].created_at).toLocaleString('zh-CN');
+    }else{
+      document.getElementById('lastLoginTime').textContent = '暂无记录';
+    }
+  })
+  .catch(function(){
+    document.getElementById('loginCount').textContent = '--';
+    document.getElementById('lastLoginTime').textContent = '--';
+  });
+}
+
 function loadMyProfile(){
   if(!currentUser || !currentUser.uid) return;
   fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid + '&select=name,nickname,bio,student_id', {
@@ -429,6 +420,10 @@ function loadMyProfile(){
 function saveNickname(){
   var newNick = document.getElementById('newNickname').value.trim();
   if(newNick.length > 30){ showToast('昵称最多30个字符', 'error'); return; }
+
+  var btn = document.getElementById('nickBtn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
 
   fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
     headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token}
@@ -466,12 +461,20 @@ function saveNickname(){
   })
   .catch(function(err){
     showToast('保存失败：' + err.message, 'error');
+  })
+  .finally(function(){
+    btn.disabled = false;
+    btn.textContent = '保存昵称';
   });
 }
 
 function saveBio(){
   var bio = document.getElementById('bioTextarea').value.trim();
   if(bio.length > 100){ showToast('简介最多100字', 'error'); return; }
+
+  var btn = document.getElementById('bioBtn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
 
   fetch(SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + currentUser.uid, {
     headers: {'apikey': ANON_KEY, 'Authorization': 'Bearer ' + currentUser.token}
@@ -509,41 +512,19 @@ function saveBio(){
   })
   .catch(function(err){
     showToast('保存失败：' + err.message, 'error');
+  })
+  .finally(function(){
+    btn.disabled = false;
+    btn.textContent = '保存简介';
   });
 }
 
 function logout(){
   if(!confirm('确认退出登录？')) return;
   try{
-    var keysToRemove = [
-      'sb_session', 'sb_admin', 'sb_user',
-      'logged_in', 'login_expire', 'is_admin',
-      'visitor_verified', 'mode', 'visitor_from_login',
-      'bgm_state', 'bgm_muted', 'bgm_played',
-      'last_register_submit', 'last_ticket_submit'
-    ];
-    keysToRemove.forEach(function(key){
-      try{ localStorage.removeItem(key); }catch(e){}
-    });
-    // 批量清除所有以sb_、user_、auth_、token_开头的字段
-    for(var i = localStorage.length - 1; i >= 0; i--){
-      var key = localStorage.key(i);
-      if(key && (key.indexOf('sb_') === 0 || key.indexOf('user_') === 0 || key.indexOf('auth_') === 0 || key.indexOf('token_') === 0)){
-        localStorage.removeItem(key);
-      }
-    }
-    // 保留验证状态_v，避免重新触发人机验证
-    var _v = sessionStorage.getItem('_v');
-    sessionStorage.clear();
-    if(_v) sessionStorage.setItem('_v', _v);
-    // 清除背景音乐状态
-    if(window.BGM && typeof BGM.clearAllState === 'function'){
-      BGM.clearAllState();
-    }
-  }catch(e){
-    console.error('退出登录出错:', e);
-  }
-  showToast('已退出登录，所有用户信息已清除', 'success');
+    if(window.BGM && typeof BGM.clearAllState === 'function'){ BGM.clearAllState(); }
+  }catch(e){}
+  if(window.XAUTH && typeof XAUTH.logout === 'function'){ XAUTH.logout(); return; }
   location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 

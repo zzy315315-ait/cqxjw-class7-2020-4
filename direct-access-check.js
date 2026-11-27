@@ -10,10 +10,11 @@
       ? XAUTH.LOGIN_PAGE
       : 'https://cqxjw-class7-2020.pages.dev/login.html';
 
-    // 检查是否已登录
-    var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || 
+    // 检查是否已登录（优先用 xauth.js 校验过有效期的会话，过期残留会被其自动清除）
+    var xuser = (typeof XAUTH !== 'undefined' && typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+    var hasSession = xuser || localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') ||
                       sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
-    var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
+    var loggedIn = xuser || sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
     
     // 检查是否是访客
     var isVisitor = sessionStorage.getItem('visitor_verified') || 
